@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="static/img/favicon.svg" type="image/svg">
+    <title>Задать вопрос</title>
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+                <img src="static/img/favicon.svg" class="img-thumbnail border" width="40" height="40" alt="Icon">
+                <span class="fw-bold">World of Games</span>
+            </a>
+
+            <form class="d-flex" role="search">
+                <input class="form-control me-2" type="search" placeholder="Как выполнить квест..." aria-label="Search"/>
+                <a class="d-flex" style="text-decoration: none;" href="#">
+                    <button class="btn btn-outline-info" type="submit">Поиск</button>
+                </a>
+            </form>
+
+            <a class="d-flex" style="text-decoration: none;" href="ask.html">
+                <button class="btn btn-outline-success" type="submit">Задать вопрос</button>
+            </a>
+
+            <div class="d-flex align-items-center gap-3">
+                <div>
+                    <img src="static/img/person.svg" class="rounded-circle border" width="50" height="50" alt="Account avatar">
+                </div>
+
+                <div class="d-flex flex-column">
+                    <div class="content__name">
+                        Capitan Sheppard
+                    </div>
+                    <div class="content__links">
+                        <a href="profile.html" class="text-dark">Настройки профиля</a>
+                        <a href="#" class="text-dark">Выход</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- <div class="d-flex align-items-center gap-3">
+                <a href="login.html" class="text-dark">Вход</a>
+                <a href="signup.html" class="text-dark">Регистрация</a>
+            </div> -->
+        </div>
+    </nav>
+
+    <main class="container mb-5 mt-4 flex-grow-1">
+        <div class="row g-4">
+            <section class="col-12 col-lg-9" style="min-height: 400px;">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="h3 mb-4 fw-bold">Новый вопрос</h2>
+
+                        <div class="alert alert-danger d-flex align-items-center mb-4 fade show" role="alert">
+                            <div>
+                                <strong>Ошибка публикации:</strong> Пожалуйста, проверьте правильность заполнения полей. Теги не должны содержать пробелов.
+                            </div>
+                        </div>
+
+                        <form action="#" method="POST" novalidate>
+                            <div class="mb-3">
+                                <label for="questionTitle" class="form-label fw-semibold fs-5">Заголовок вопроса</label>
+                                <input type="text" class="form-control form-control-lg" id="questionTitle" name="title"
+                                       placeholder="Например: Как победить Малению в Elden Ring?"
+                                       maxlength="150" required> 
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <div class="form-text">Кратко опишите суть. Количество символов от 10 до 150.</div>
+                                    <small class="text-muted char-counter" id="titleCount">0/150</small>
+                                </div>
+                                <div class="invalid-feedback">Заголовок обязателен и должен быть от 10 до 150 символов.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="questionText" class="form-label fw-semibold fs-5">Подробное описание</label>
+                                <textarea class="form-control" id="questionText" name="text" rows="7"
+                                          placeholder="Опишите проблему подробно. Укажите:&#10;• Какую игру проходите&#10;• Версию игры&#10;• Что делали&#10;• Что произошло&#10;"
+                                          maxlength="5000" required></textarea>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <div class="form-text">Подробно опишите проблему. Количество символов от 20 до 5000.</div>
+                                    <small class="text-muted char-counter" id="textCount">0/5000</small>
+                                </div>
+                                <div class="invalid-feedback">Описание обязательно и должно быть от 20 до 5000 символов.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="questionTags" class="form-label fw-semibold fs-5">Теги</label>
+                                <input type="text" class="form-control is-invalid" id="questionTags" name="tags"
+                                       placeholder="Например: witcher-3, loot, story"
+                                       maxlength="100"> 
+                                <div class="form-text">Укажите до 10 тегов через запятую. Только латиница, цифры и дефисы.</div>
+                                <div class="invalid-feedback">Теги не должны содержать пробелов. Используйте дефис (например: witcher-3).</div>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+                                <a href="index.html" class="btn btn-outline-secondary px-4">Отмена</a>
+                                <button type="submit" class="btn btn-success px-5 fw-bold">Задать вопрос</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="col-12 col-lg-3">
+                <section class="mb-4">
+                    <div class="card sidebar-card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-3 fw-bold">Популярные игры</h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="tag.html" class="badge px-3 py-2 text-decoration-none text-white" style="background-color: #4a6fa5;">Witcher 3</a>
+                                <a href="tag.html" class="badge px-3 py-2 text-decoration-none text-white" style="background-color: #b35d5d;">TES V: Skyrim</a>
+                                <a href="tag.html" class="badge px-3 py-2 text-decoration-none text-white" style="background-color: #558265;">Mass Effect 2</a>
+                                <a href="tag.html" class="badge px-3 py-2 text-decoration-none text-white" style="background-color: #c98a4b;">Crimson Desert</a>
+                            </div>            
+                        </div>            
+                    </div>
+                </section>
+
+                <section class="mb-4">
+                    <div class="card sidebar-card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-3 fw-bold">Игровые гуру</h5>
+                            <div class="d-flex flex-column gap-2">
+                                <a href="#" class="d-flex align-items-center text-decoration-none text-secondary gap-2 p-2 rounded hover-bg-light">
+                                    <img src="static/img/person.svg" class="rounded-circle border" width="32" height="32" alt="Best member">
+                                    <span class="fw-medium">Dr. House</span>
+                                </a>
+                                <a href="#" class="d-flex align-items-center text-decoration-none text-secondary gap-2 p-2 rounded hover-bg-light">
+                                    <img src="static/img/person.svg" class="rounded-circle border" width="32" height="32" alt="Best member">
+                                    <span class="fw-medium">Mr. Freeman</span>
+                                </a>
+                            </div>            
+                        </div>            
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="bg-white border-top py-4 mt-auto">
+        <div class="container text-center text-muted">
+            <small>&copy; 2026 World of Games. Все права защищены.</small>
+        </div>
+    </footer>
+    
+    <script src="static/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

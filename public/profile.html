@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="static/img/favicon.svg" type="image/svg">
+    <title>Профиль</title>
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="static/img/favicon.svg" class="img-thumbnail border" width="40" height="40" alt="Icon">
+                <span>World of Games</span>
+            </a>
+
+            <form class="d-flex" role="search">
+                <input class="form-control me-2" type="search" placeholder="Как выполнить квест..." aria-label="Search"/>
+                <a class="d-flex" style="text-decoration: none;" href="#">
+                    <button class="btn btn-outline-info" type="submit">Поиск</button>
+                </a>
+            </form>
+
+            <a class="d-flex" style="text-decoration: none;" href="ask.html">
+                <button class="btn btn-outline-success" type="submit">Задать вопрос</button>
+            </a>
+
+            <div class="d-flex align-items-center gap-3">
+                <div>
+                    <img src="static/img/person.svg" class="rounded-circle border" width="50" height="50" alt="Account avatar">
+                </div>
+
+                <div class="d-flex flex-column">
+                    <div class="content__name">
+                        Capitan Sheppard
+                    </div>
+                    <div class="content__links">
+                        <a href="profile.html" class="text-dark">Настройки профиля</a>
+                        <a href="#" class="text-dark">Выход</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- <div class="d-flex align-items-center gap-3">
+                <a href="login.html" class="text-dark">Вход</a>
+                <a href="signup.html" class="text-dark">Регистрация</a>
+            </div> -->
+
+        </div>
+    </nav>
+
+    <main class="container mb-5 mt-4 flex-grow-1">
+        <div class="row g-4">
+            <section class="col-12 col-lg-9" style="min-height: 400px;">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="h3 mb-4 fw-bold">Настройки: Dr. Pepper</h2>
+
+                        <div class="alert alert-danger d-flex align-items-center mb-4 d-none" role="alert" id="formErrorAlert">
+                            <div id="formErrorMessage"><strong>Ошибка сохранения:</strong>Не удалось обновить данные.</div>
+                        </div>
+
+                        <form action="#" method="POST" enctype="multipart/form-data" novalidate>
+                            <div class="mb-3">
+                                <label for="settingsLogin" class="form-label fw-semibold fs-5">Логин</label>
+                                <input type="text" class="form-control form-control-lg bg-light" id="settingsLogin" name="login" value="dr_pepper" readonly>
+                                <div class="form-text">Логин является уникальным идентификатором и не подлежит изменению.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="settingsEmail" class="form-label fw-semibold fs-5">Email</label>
+                                <input type="email" class="form-control form-control-lg" id="settingsEmail" name="email" placeholder="mrfreeman@mail.ru" maxlength="100" required>
+                                <div class="form-text">Используется для входа, уведомлений и восстановления доступа.</div>
+                                <div class="invalid-feedback">Некорректный email. Формат: name@domain.ru</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="settingsNickname" class="form-label fw-semibold fs-5">Отображаемое имя</label>
+                                <input type="text" class="form-control form-control-lg" id="settingsNickname" name="nickname" placeholder="Mr. Freeman" maxlength="50" required>
+                                <div class="form-text">Видно другим пользователям в вопросах, ответах и рейтинге.</div>
+                                <div class="invalid-feedback">Имя должно содержать от 2 до 50 символов.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="settingsAvatar" class="form-label fw-semibold fs-5">Аватар</label>
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <img src="static/img/person.svg" class="rounded-circle border bg-light" width="64" height="64" alt="Current Avatar">
+                                    <div class="small text-muted">
+                                        <div class="fw-medium text-dark">Текущее изображение</div>
+                                        <span>Загрузите новое, чтобы заменить</span>
+                                    </div>
+                                </div>
+                                <input class="form-control form-control-lg" type="file" id="settingsAvatar" name="avatar" accept="image/png, image/jpeg">
+                                <div class="form-text">Поддерживаются JPG и PNG. Максимальный размер файла: 2 МБ.</div>
+                                <div class="invalid-feedback">Файл слишком большой или имеет недопустимый формат.</div>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+                                <a href="index.html" class="btn btn-outline-secondary px-4">Отмена</a>
+                                <button type="submit" class="btn btn-primary px-5 fw-bold">Сохранить</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="col-12 col-lg-3" style="min-height: 200px;">
+                <section class="mb-4">
+                    <div class="card sidebar-card">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-3 fw-bold">Популярные игры</h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge px-2 py-1" style="background-color: #4a6fa5; color: white;"><a style="all:unset" href="tag.html">Witcher 3</a></span>
+                                <span class="badge px-2 py-1" style="background-color: #b35d5d; color: white;"><a style="all:unset" href="tag.html">TES V: Skyrim</a></span>
+                                <span class="badge px-2 py-1" style="background-color: #558265; color: white;"><a style="all:unset" href="tag.html">Mass Effect 2</a></span>
+                                <span class="badge px-2 py-1" style="background-color: #c98a4b; color: white;"><a style="all:unset" href="tag.html">Crimson Desert</a></span>
+                            </div>            
+                        </div>            
+                    </div>
+                </section>
+
+                <section class="mb-4">
+                    <div class="card sidebar-card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3 fw-bold">Игровые гуру</h5>
+                            <div class="d-flex flex-column gap-2">
+                                <a href="#" class="d-flex align-items-center text-decoration-none text-secondary gap-2">
+                                    <img src="static/img/person.svg" class="rounded-circle border" width="32" height="32" alt="Best member">
+                                    <span>Dr. House</span>
+                                </a>
+        
+                                <a href="#" class="d-flex align-items-center text-decoration-none text-secondary gap-2">
+                                    <img src="static/img/person.svg" class="rounded-circle border" width="32" height="32" alt="Best member">
+                                    <span>Mr. Freeman</span>
+                                </a>
+                            </div>            
+                        </div>            
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="bg-white border-top py-4 mt-auto">
+        <div class="container text-center text-muted">
+            <small>&copy; 2026 World of Games. Все права защищены.</small>
+        </div>
+    </footer>
+    
+    <script src="static/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

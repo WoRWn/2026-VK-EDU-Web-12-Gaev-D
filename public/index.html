@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="static/img/favicon.svg" type="image/svg">
+    <title>Вопросы по играм</title>
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="static/img/favicon.svg" class="img-thumbnail border" width="40" height="40" alt="Icon">
+                <span>World of Games</span>
+            </a>
+
+            <form class="d-flex" role="search">
+                <input class="form-control me-2" type="search" placeholder="Как выполнить квест..." aria-label="Search"/>
+                <a class="d-flex" style="text-decoration: none;" href="#">
+                    <button class="btn btn-outline-info" type="submit">Поиск</button>
+                </a>
+            </form>
+
+            <a class="d-flex" style="text-decoration: none;" href="ask.html">
+                <button class="btn btn-outline-success" type="submit">Задать вопрос</button>
+            </a>
+
+            <div class="d-flex align-items-center gap-3">
+                <div>
+                    <img src="static/img/person.svg" class="rounded-circle border" width="50" height="50" alt="Account avatar">
+                </div>
+
+                <div class="d-flex flex-column">
+                    <div class="content__name">
+                        Capitan Sheppard
+                    </div>
+                    <div class="content__links">
+                        <a href="profile.html" class="text-dark">Настройки профиля</a>
+                        <a href="#" class="text-dark">Выход</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- <div class="d-flex align-items-center gap-3">
+                <a href="login.html" class="text-dark">Вход</a>
+                <a href="signup.html" class="text-dark">Регистрация</a>
+            </div> -->
+
+        </div>
+    </nav>
+
+    <main class="container mb-5 mt-4 flex-grow-1">
+        <div class="row g-4">
+            <section class="col-12 col-lg-9 bg-white border rounded" style="min-height: 400px;">
+                <section class="col-8 bg-white">
+                    <div class="d-flex align-items-center gap-2">
+                        <h1>Новые вопросы</h1>
+                        <a href="hot.html" class="text-dark" style="font-size: large;">Трендовые вопросы</a>
+                    </div>
+                </section>
+
+                <div class="question-list mt-3">
+                    <div class="card mb-2">
+                        <div class="card-body d-flex gap-3">
+                            <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
+                                <img src="static/img/person.svg" class="rounded-circle border mb-2" style="width: 40px; height: 40px; background-color: #eee;" alt="Avatar">
+                                <button class="btn btn-sm btn-link p-0 vote-btn" title="Добавить">&#9650;</button>
+                                <div class="vote-count fw-bold my-1">5</div>
+                                <button class="btn btn-sm btn-link p-0 vote-btn" title="Убавить">&#9660;</button>
+                            </div>
+                            
+                            <div class="flex-grow-1 d-flex flex-column"> 
+                                <h4 class="question-title mb-1">
+                                    <a href="question.html" class="text-dark text-decoration-none fw-semibold">Где найти чертеж для доспехов школы Медведя?</a>
+                                </h4>
+                                <p class="card-text text-secondary mb-0" style="font-size: 0.95rem; line-height: 1.5;">
+                                    На Ард Скеллиге нашел чертежи меча и арбалета школы Медведя, обошел весь остров, но не смог найти чертеж для доспехов. Где его можно найти?
+                                </p>
+                                
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-auto pt-3 border-top">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="tag.html" class="badge px-2 py-1 text-decoration-none" style="background-color: #4a6fa5; color: white;">Witcher 3</a>
+                                        <a href="tag.html" class="badge px-2 py-1 text-decoration-none" style="background-color: #7e1d69; color: white;">Loot</a>
+                                    </div>
+                                    <div class="d-flex gap-3 text-muted" style="font-size: 0.85rem;">
+                                        <span>1 ответ</span>
+                                        <span>37 минут назад от <a href="#" class="text-decoration-none text-secondary fw-bold">Mr. Freeman</a></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-2">
+                        <div class="card-body d-flex gap-3">
+                            <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
+                                <img src="static/img/person.svg" class="rounded-circle border mb-2" style="width: 40px; height: 40px; background-color: #eee;" alt="Avatar">
+                                <button class="btn btn-sm btn-link p-0 vote-btn" title="Добавить">&#9650;</button>
+                                <div class="vote-count fw-bold my-1">3</div>
+                                <button class="btn btn-sm btn-link p-0 vote-btn" title="Убавить">&#9660;</button>
+                            </div>
+                            
+                            <div class="flex-grow-1 d-flex flex-column"> 
+                                <h4 class="question-title mb-1">
+                                    <a href="question.html" class="text-dark text-decoration-none fw-semibold">С кем из команды можно завести романы в Mass Effect 2?</a>
+                                </h4>
+                                <p class="card-text text-secondary mb-0" style="font-size: 0.95rem; line-height: 1.5;">
+                                    Хочу узнать не упустил ли я еще какие-то варианты перед тем, как выбирать.
+                                </p>
+                                
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-auto pt-3 border-top">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="tag.html" class="badge px-2 py-1 text-decoration-none" style="background-color: #558265; color: white;">Mass Effect 2</a>
+                                        <a href="tag.html" class="badge px-2 py-1 text-decoration-none" style="background-color: #35b495; color: white;">Story</a>
+                                    </div>
+                                    <div class="d-flex gap-3 text-muted" style="font-size: 0.85rem;">
+                                        <span>13 ответов</span>
+                                        <span>3 часа 45 минут назад от <a href="#" class="text-decoration-none text-secondary fw-bold">Capitan Sheppard</a></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="card mb-2">
+                        <div class="card-body d-flex gap-3">
+                            <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
+                                <img src="static/img/person.svg" class="rounded-circle border mb-2" style="width: 40px; height: 40px; background-color: #eee;" alt="Avatar">
+                                <button class="btn btn-sm btn-link p-0 vote-btn" title="Добавить">&#9650;</button>
+                                <div class="vote-count fw-bold my-1">15</div>
+                                <button class="btn btn-sm btn-link p-0 vote-btn" title="Убавить">&#9660;</button>
+                            </div>
+                            
+                            <div class="flex-grow-1 d-flex flex-column"> 
+                                <h4 class="question-title mb-1">
+                                    <a href="question.html" class="text-dark text-decoration-none fw-semibold">Где почитать полноценный лор Древних Свитков?</a>
+                                </h4>
+                                <p class="card-text text-secondary mb-0" style="font-size: 0.95rem; line-height: 1.5;">
+                                    Сейчас прохожу TES V: Skyrim и очень заинтересовался вселенной, хочу узнать о ней побольше. Может быть есть какая нибудь книга, в которой будет описываться лор всех игр серии. Буду рад, если кто подскажет.
+                                </p>
+                                
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-auto pt-3 border-top">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="tag.html" class="badge px-2 py-1 text-decoration-none" style="background-color: #b35d5d; color: white;">TES V: Skyrim</a>
+                                        <a href="tag.html" class="badge px-2 py-1 text-decoration-none" style="background-color: #7a743e; color: white;">Lore</a>
+                                    </div>
+                                    <div class="d-flex gap-3 text-muted" style="font-size: 0.85rem;">
+                                        <span>2 ответа</span>
+                                        <span>неделю назад от <a href="#" class="text-decoration-none text-secondary fw-bold">DragonBorn</a></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <nav aria-label="Навигация по страницам" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1">← Назад</a>
+                        </li>
+                        <li class="page-item active">
+                            <a class="page-link" href="#">1</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">2</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">3</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Вперёд →</a>
+                        </li>
+                    </ul>
+                </nav>
+            </section>
+
+            <aside class="col-12 col-lg-3" style="min-height: 200px;">
+                <section class="mb-4">
+                    <div class="card sidebar-card">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-3 fw-bold">Популярные игры</h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge px-2 py-1" style="background-color: #4a6fa5; color: white;"><a style="all:unset" href="tag.html">Witcher 3</a></span>
+                                <span class="badge px-2 py-1" style="background-color: #b35d5d; color: white;"><a style="all:unset" href="tag.html">TES V: Skyrim</a></span>
+                                <span class="badge px-2 py-1" style="background-color: #558265; color: white;"><a style="all:unset" href="tag.html">Mass Effect 2</a></span>
+                                <span class="badge px-2 py-1" style="background-color: #c98a4b; color: white;"><a style="all:unset" href="tag.html">Crimson Desert</a></span>
+                            </div>            
+                        </div>            
+                    </div>
+                </section>
+
+                <section class="mb-4">
+                    <div class="card sidebar-card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3 fw-bold">Игровые гуру</h5>
+                            <div class="d-flex flex-column gap-2">
+                                <a href="#" class="d-flex align-items-center text-decoration-none text-secondary gap-2">
+                                    <img src="static/img/person.svg" class="rounded-circle border" width="32" height="32" alt="Best member">
+                                    <span>Dr. House</span>
+                                </a>
+        
+                                <a href="#" class="d-flex align-items-center text-decoration-none text-secondary gap-2">
+                                    <img src="static/img/person.svg" class="rounded-circle border" width="32" height="32" alt="Best member">
+                                    <span>Mr. Freeman</span>
+                                </a>
+                            </div>            
+                        </div>            
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="bg-white border-top py-4 mt-auto">
+        <div class="container text-center text-muted">
+            <small>&copy; 2026 World of Games. Все права защищены.</small>
+        </div>
+    </footer>
+    
+    <script src="static/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

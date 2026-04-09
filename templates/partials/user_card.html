@@ -1,0 +1,9 @@
+{% load static %}
+<a href="#" class="d-flex align-items-center text-decoration-none text-secondary gap-2">
+    {% if user.avatar_url %}
+        <img src="{% static user.avatar_url %}" class="rounded-circle border" width="32" height="32" alt="{{ user.username }}">
+    {% else %}
+        <img src="{% static 'img/person.svg' %}" class="rounded-circle border" width="32" height="32" alt="Default Avatar">
+    {% endif %}
+    <span>{{ user.username }}</span>
+</a>

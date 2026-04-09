@@ -1,0 +1,29 @@
+{% load static %}
+<section class="mb-4">
+    <div class="card sidebar-card">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-3 fw-bold">Популярные игры</h5>
+            <div class="d-flex flex-wrap gap-2">
+                {% for tag in popular_tags %}
+                    {% include 'partials/tag_card.html' %}
+                {% empty %}
+                    <span class="text-muted small">Теги не найдены</span>
+                {% endfor %}
+            </div>            
+        </div>            
+    </div>
+</section>
+<section class="mb-4">
+    <div class="card sidebar-card">
+        <div class="card-body">
+            <h5 class="card-title mb-3 fw-bold">Игровые гуру</h5>
+            <div class="d-flex flex-column gap-2">
+                {% for user in best_members %}
+                    {% include 'partials/user_card.html' %}
+                {% empty %}
+                    <span class="text-muted small">Пользователи не найдены</span>
+                {% endfor %}
+            </div>            
+        </div>            
+    </div>
+</section>

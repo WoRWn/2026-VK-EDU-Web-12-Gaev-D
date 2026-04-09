@@ -1,0 +1,18 @@
+{% extends 'layout/base.html' %}
+{% block title %}Трендовые вопросы{% endblock %}
+{% block content %}
+<section class="col-12 col-lg-9 bg-white border rounded" style="min-height: 400px;">
+    <div class="d-flex align-items-center gap-2 p-3 border-bottom">
+        <h1>Трендовые вопросы</h1>
+        <a href="{% url 'index' %}" class="text-dark" style="font-size: large;">Новые вопросы</a>
+    </div>
+    <div class="question-list mt-3 px-3">
+        {% for question in questions %}
+            {% include 'questions/partials/question_preview.html' %}
+        {% empty %}
+            <p class="text-center text-muted py-5">Популярных вопросов пока нет.</p>
+        {% endfor %}
+    </div>
+    {% include 'partials/pagination.html' %}
+</section>
+{% endblock %}

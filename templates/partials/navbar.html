@@ -1,25 +1,25 @@
 {% load static %}
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
-    <div class="container">
+    <div class="container d-flex flex-column flex-lg-row align-items-lg-center row-gap-3 column-gap-5">
         <a class="navbar-brand" href="{% url 'index' %}">
             <img src="{% static 'img/favicon.svg' %}" class="img-thumbnail border" width="40" height="40" alt="Icon">
             <span>World of Games</span>
         </a>
 
-        <form class="d-flex" action="#" role="search">
+        <form class="d-flex w-100 w-lg-auto" action="#" role="search">
             <input class="form-control me-2" type="search" name="q" placeholder="Как выполнить квест..." aria-label="Search"/>
             <button class="btn btn-outline-info" type="submit">Поиск</button>
         </form>
 
-        <a class="d-flex" style="text-decoration: none;" href="{% url 'ask' %}">
-            <button class="btn btn-outline-success" type="button">Задать вопрос</button>
+        <a class="d-flex w-100 w-lg-auto justify-content-center justify-content-lg-start" style="text-decoration: none;" href="{% url 'ask' %}">
+            <button class="btn btn-outline-success w-100 w-lg-auto" type="button">Задать вопрос</button>
         </a>
 
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 w-100 w-lg-auto justify-content-center justify-content-lg-end">
             <div>
                 <img src="{% static 'img/person.svg' %}" class="rounded-circle border" width="50" height="50" alt="Account avatar">
             </div>
-            <div class="d-flex flex-column">
+            <div class="d-flex flex-column text-center text-lg-start">
                 <div class="content__name">Capitan Sheppard</div>
                 <div class="content__links">
                     <a href="{% url 'profile' %}" class="text-dark">Настройки профиля</a>

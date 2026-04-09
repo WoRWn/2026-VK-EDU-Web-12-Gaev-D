@@ -41,3 +41,19 @@ footer {
     transition: color 0.2s;
 }
 .char-counter.limit { color: #dc3545; font-weight: 600; }
+
+/* Navbar layout */
+.navbar .navbar-search {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.navbar .navbar-ask-btn {
+    flex: 0 0 auto;
+    width: 200px;
+}
+
+.navbar .navbar-profile,
+.navbar .navbar-auth {
+    flex: 0 0 auto;
+}

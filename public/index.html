@@ -10,29 +10,31 @@
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
-        <div class="container">
+        <div class="container d-flex flex-column flex-lg-row align-items-lg-center row-gap-3 column-gap-5">
             <a class="navbar-brand" href="index.html">
                 <img src="static/img/favicon.svg" class="img-thumbnail border" width="40" height="40" alt="Icon">
                 <span>World of Games</span>
             </a>
 
-            <form class="d-flex" role="search">
+            <form class="d-flex navbar-search" role="search">
                 <input class="form-control me-2" type="search" placeholder="Как выполнить квест..." aria-label="Search"/>
                 <a class="d-flex" style="text-decoration: none;" href="#">
                     <button class="btn btn-outline-info" type="submit">Поиск</button>
                 </a>
             </form>
 
-            <a class="d-flex" style="text-decoration: none;" href="ask.html">
-                <button class="btn btn-outline-success" type="submit">Задать вопрос</button>
+            <a class="d-flex navbar-ask-btn justify-content-center justify-content-lg-start" style="text-decoration: none;" href="ask.html">
+                <button class="btn btn-outline-success w-100" type="submit">
+                    Задать вопрос
+                </button>
             </a>
 
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3 navbar-profile">
                 <div>
                     <img src="static/img/person.svg" class="rounded-circle border" width="50" height="50" alt="Account avatar">
                 </div>
 
-                <div class="d-flex flex-column">
+                <div class="d-flex flex-column text-center text-lg-start">
                     <div class="content__name">
                         Capitan Sheppard
                     </div>

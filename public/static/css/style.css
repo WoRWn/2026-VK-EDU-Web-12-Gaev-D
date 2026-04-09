@@ -42,6 +42,25 @@ footer {
 }
 .char-counter.limit { color: #dc3545; font-weight: 600; }
 
+/* Truncate question titles and text (like Django's truncatechars) */
+.question-title a {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.question-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
 /* Navbar layout */
 .navbar .navbar-search {
     flex: 1 1 auto;

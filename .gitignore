@@ -16,6 +16,7 @@ db.sqlite3
 
 # Переменные окружения
 .env
+.conf/
 
 # IDE / OS
 .idea/

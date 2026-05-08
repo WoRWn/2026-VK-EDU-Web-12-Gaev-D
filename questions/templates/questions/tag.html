@@ -1,0 +1,17 @@
+{% extends 'layout/base.html' %}
+{% block title %}Вопросы по тегу {{ tag_name }}{% endblock %}
+{% block content %}
+<section class="col-12 col-lg-9 bg-white border rounded" style="min-height: 400px;">
+    <div class="d-flex align-items-center gap-2 p-3 border-bottom">
+        <h1>Вопросы с тегом: <span class="badge" style="background-color: #4a6fa5; color: white;">{{ tag_name }}</span></h1>
+    </div>
+    <div class="question-list mt-3 px-3">
+        {% for question in questions %}
+            {% include 'questions/partials/question_preview.html' %}
+        {% empty %}
+            <p class="text-center text-muted py-5">По тегу {{ tag_name }} вопросов нет.</p>
+        {% endfor %}
+    </div>
+    {% include 'partials/pagination.html' %}
+</section>
+{% endblock %}

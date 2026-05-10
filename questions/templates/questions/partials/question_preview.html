@@ -2,13 +2,13 @@
 <div class="card mb-2">
     <div class="card-body d-flex gap-3">
         <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
-            {% if question.user_avatar %}
-                <img src="{% static question.user_avatar %}" class="rounded-circle border mb-2" style="width: 40px; height: 40px;" alt="Avatar">
+            {% if question.author.profile.avatar %}
+                <img src="{% static question.author.profile.avatar.url %}" class="rounded-circle border mb-2" style="width: 40px; height: 40px;" alt="Avatar">
             {% else %}
                 <img src="{% static 'img/person.svg' %}" class="rounded-circle border mb-2" style="width: 40px; height: 40px; background-color: #eee;" alt="Avatar">
             {% endif %}
             <button class="btn btn-sm btn-link p-0 vote-btn" title="Добавить">&#9650;</button>
-            <div class="vote-count fw-bold my-1">{{ question.votes }}</div>
+            <div class="vote-count fw-bold my-1">{{ question.likes_count }}</div>
             <button class="btn btn-sm btn-link p-0 vote-btn" title="Убавить">&#9660;</button>
         </div>
         <div class="flex-grow-1 d-flex flex-column"> 
@@ -18,13 +18,13 @@
             <p class="card-text text-secondary mb-0" style="font-size: 0.95rem; line-height: 1.5;">{{ question.text|truncatechars_html:200  }}</p>
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-auto pt-3 border-top">
                 <div class="d-flex flex-wrap gap-2">
-                    {% for tag in question.tags %}
+                    {% for tag in question.tags.all %}
                         {% include 'partials/tag_card.html' %}
                     {% endfor %}
                 </div>
                 <div class="d-flex gap-3 text-muted" style="font-size: 0.85rem;">
-                    <span>Ответов: {{ question.answers_cnt }}</span>
-                    <span>{{ question.post_time }} назад от {{ question.username }}</span>
+                    <span>Ответов: {{ question.answers_count }}</span>
+                    <span>{{ question.created_at|timesince }} назад от {{ question.author.username }}</span>
                 </div>
             </div>
         </div>

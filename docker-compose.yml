@@ -1,13 +1,30 @@
+version: '3.8'
 services:
-  web:
-    build: .             
+  db:
+    image: postgres:15-alpine
+    env_file: .env.docker
+    volumes:
+      - pg_/var/lib/postgresql/data
     ports:
-      - "8000:8000"    
+      - "5432:5432"
+    networks:
+      - app_net
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
-      - media_volume:/app/media
-
-    command: python manage.py runserver 0.0.0.0:8000
+    env_file: .env.docker
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - app_net
 
 volumes:
-  media_volume:
+  pg_
+
+networks:
+  app_net:

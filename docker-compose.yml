@@ -2,29 +2,37 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
-    env_file: .env.docker
+    env_file: .conf/.env.docker
     volumes:
-      - pg_/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
       - app_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
-    env_file: .env.docker
+    env_file: .conf/.env.docker
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app_net
 
 volumes:
-  pg_
+  pg_data:
 
 networks:
   app_net:
+    driver: bridge

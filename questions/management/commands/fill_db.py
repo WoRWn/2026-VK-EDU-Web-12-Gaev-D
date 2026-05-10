@@ -6,7 +6,7 @@ from faker import Faker
 from questions.models import Profile, Tag, Question, Answer, QuestionLike, AnswerLike
 
 fake = Faker("ru_RU")
-BATCH_SIZE = 5000
+BATCH_SIZE = 1000
 
 TEST_PASSWORD_HASH = make_password("123456")
 

@@ -3,13 +3,31 @@
     <div class="card-body d-flex gap-3">
         <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
             {% if question.author.profile.avatar %}
-                <img src="{% static question.author.profile.avatar.url %}" class="rounded-circle border mb-2" style="width: 40px; height: 40px;" alt="Avatar">
+                <img src="{{ question.author.profile.avatar.url }}" class="rounded-circle border mb-2" style="width: 40px; height: 40px;" alt="Avatar">
             {% else %}
                 <img src="{% static 'img/person.svg' %}" class="rounded-circle border mb-2" style="width: 40px; height: 40px; background-color: #eee;" alt="Avatar">
             {% endif %}
-            <button class="btn btn-sm btn-link p-0 vote-btn" title="Добавить">&#9650;</button>
-            <div class="vote-count fw-bold my-1">{{ question.likes_count }}</div>
-            <button class="btn btn-sm btn-link p-0 vote-btn" title="Убавить">&#9660;</button>
+            <span class="d-inline-block" title="{% if user.is_authenticated %}Нравится{% else %}Войдите, чтобы оценить{% endif %}">
+                <button class="btn btn-sm btn-link p-0 vote-btn" 
+                        data-id="{{ question.id }}" 
+                        data-type="question" 
+                        data-action="like"
+                        data-user-vote="{{ question.user_vote|default:0 }}"
+                        {% if not user.is_authenticated %}disabled{% endif %}>
+                    ▲
+                </button>
+            </span>
+            <div class="fw-bold my-1 text-dark fs-5" id="q-rating-{{ question.id }}">{{ question.question_likes.count }}</div>
+            <span class="d-inline-block" title="{% if user.is_authenticated %}Не нравится{% else %}Войдите, чтобы оценить{% endif %}">
+                <button class="btn btn-sm btn-link p-0 vote-btn" 
+                        data-id="{{ question.id }}" 
+                        data-type="question" 
+                        data-action="dislike"
+                        data-user-vote="{{ question.user_vote|default:0 }}"
+                        {% if not user.is_authenticated %}disabled{% endif %}>
+                    ▼
+                </button>
+            </span>
         </div>
         <div class="flex-grow-1 d-flex flex-column"> 
             <h4 class="question-title mb-1">

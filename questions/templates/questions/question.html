@@ -8,13 +8,21 @@
             <div class="d-flex gap-3">
                 <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
                     {% if question.author.profile.avatar %}
-                        <img src="{% static question.author.profile.avatar.url %}" class="rounded-circle border mb-2" width="48" height="48" alt="Author">
+                        <img src="{{ question.author.profile.avatar.url }}" class="rounded-circle border mb-2" width="48" height="48" alt="Author">
                     {% else %}
                         <img src="{% static 'img/person.svg' %}" class="rounded-circle border mb-2" width="48" height="48" alt="Author">
-                    {% endif %}
-                    <button class="btn btn-sm btn-link p-0 text-secondary">▲</button>
-                    <div class="fw-bold my-1 text-dark fs-5">{{ question.question_likes.count }}</div>
-                    <button class="btn btn-sm btn-link p-0 text-secondary">▼</button>
+                    {% endif %}    
+                    <span class="d-inline-block" title="{% if user.is_authenticated %}Нравится{% else %}Войдите, чтобы оценить{% endif %}">
+                        <button class="btn btn-sm btn-link p-0 vote-btn" 
+                                data-id="{{ question.id }}" data-type="question" data-action="like"
+                                data-user-vote="{{ question.user_vote|default:0 }}" {% if not user.is_authenticated %}disabled{% endif %}>▲</button>
+                    </span>
+                    <div class="fw-bold my-1 text-dark fs-5" id="q-rating-{{ question.id }}">{{ question.question_likes.count }}</div>
+                    <span class="d-inline-block" title="{% if user.is_authenticated %}Не нравится{% else %}Войдите, чтобы оценить{% endif %}">
+                        <button class="btn btn-sm btn-link p-0 vote-btn" 
+                                data-id="{{ question.id }}" data-type="question" data-action="dislike"
+                                data-user-vote="{{ question.user_vote|default:0 }}" {% if not user.is_authenticated %}disabled{% endif %}>▼</button>
+                    </span>
                 </div>
                 <div class="flex-grow-1 d-flex flex-column">
                     <h1 class="h3 mb-3 fw-bold text-dark">{{ question.title }}</h1>
@@ -43,17 +51,30 @@
             <div class="d-flex gap-3">
                 <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
                     {% if answer.author.profile.avatar %}
-                        <img src="{% static answer.author.profile.avatar.url %}" class="rounded-circle border" width="40" height="40" alt="Author">
+                        <img src="{{ answer.author.profile.avatar.url }}" class="rounded-circle border" width="40" height="40" alt="Author">
                     {% else %}
                         <img src="{% static 'img/person.svg' %}" class="rounded-circle border" width="40" height="40" alt="Author">
                     {% endif %}
-                    <button class="btn btn-sm btn-link p-0 text-secondary">▲</button>
-                    <div class="fw-bold my-1 text-dark fs-5">{{ answer.answer_likes.count }}</div>
-                    <button class="btn btn-sm btn-link p-0 text-secondary">▼</button>
-                    {% if answer.is_approved %}
-                    <button class="btn btn-sm btn-link p-0 text-success mt-2 fs-4">✓</button>
-                    {% else %}
-                    <button class="btn btn-sm btn-link p-0 text-secondary mt-2 fs-4">✓</button>
+                    <span class="d-inline-block" title="{% if user.is_authenticated %}Нравится{% else %}Войдите, чтобы оценить{% endif %}">
+                        <button class="btn btn-sm btn-link p-0 vote-btn" 
+                                data-id="{{ answer.id }}" data-type="answer" data-action="like"
+                                data-user-vote="{{ answer.user_vote|default:0 }}" {% if not user.is_authenticated %}disabled{% endif %}>▲</button>
+                    </span>
+                    <div class="fw-bold my-1 text-dark fs-5" id="a-rating-{{ answer.id }}">{{ answer.answer_likes.count }}</div>
+                    <span class="d-inline-block" title="{% if user.is_authenticated %}Не нравится{% else %}Войдите, чтобы оценить{% endif %}">
+                        <button class="btn btn-sm btn-link p-0 vote-btn" 
+                                data-id="{{ answer.id }}" data-type="answer" data-action="dislike"
+                                data-user-vote="{{ answer.user_vote|default:0 }}" {% if not user.is_authenticated %}disabled{% endif %}>▼</button>
+                    </span>
+            
+                    {% if question.author == user %}
+                        <button class="btn btn-sm btn-link p-0 correct-btn mt-2 fs-4 {% if answer.is_approved %}text-success{% else %}text-secondary{% endif %}"
+                                data-qid="{{ question.id }}"
+                                data-aid="{{ answer.id }}"
+                                title="{% if user.is_authenticated %}Отметить как правильный{% else %}Войдите, чтобы управлять ответами{% endif %}"
+                                {% if not user.is_authenticated %}disabled{% endif %}>
+                            ✓
+                        </button>
                     {% endif %}
                 </div>
                 <div class="flex-grow-1 d-flex flex-column">

@@ -139,10 +139,17 @@ class SignUpForm(forms.Form):
             raise forms.ValidationError("Этот логин уже занят.")
         return username
     
+    def clean_nickname(self):
+        nickname = self.cleaned_data.get("nickname")
+        if nickname and Profile.objects.filter(nickname=nickname).exists():
+            raise forms.ValidationError("Этот никнейм уже занят.")
+        return nickname
+    
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("Этот email уже зарегистрирован.")
+        return email
         
     def clean_avatar(self):
         avatar = self.cleaned_data.get("avatar")
@@ -177,12 +184,15 @@ class SignUpForm(forms.Form):
             email=self.cleaned_data["email"],
             password=self.cleaned_data["password1"]
         )
-        Profile.objects.create(
-            user=user,
-            nickname=self.cleaned_data['nickname'],
-            bio=self.cleaned_data.get('bio', ''),
-            avatar=self.cleaned_data.get('avatar')
-        )
+        try:
+            Profile.objects.create(
+                user=user,
+                nickname=self.cleaned_data['nickname'],
+                bio=self.cleaned_data.get('bio', ''),
+                avatar=self.cleaned_data.get('avatar')
+            )
+        except Exception:
+            user.delete()
         return user 
     
 class ProfileForm(forms.Form):
@@ -236,7 +246,7 @@ class ProfileForm(forms.Form):
                 
     def clean_email(self):
         email = self.cleaned_data.get("email")
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email=email).exclude(pk=self.user.pk).exists():
             raise forms.ValidationError("Этот email уже используется.")
         return email
     

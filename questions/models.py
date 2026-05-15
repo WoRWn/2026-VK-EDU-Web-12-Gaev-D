@@ -5,7 +5,7 @@ from django.db.models import Count
 class Profile(models.Model):
     user = models.OneToOneField(User, verbose_name="Пользователь", on_delete=models.CASCADE, related_name="profile")
     nickname = models.CharField(verbose_name="Никнейм", max_length=50, unique=True, blank=True)
-    bio = models.CharField(verbose_name="О себе", max_length=500, blank=True)
+    bio = models.TextField(verbose_name="О себе", blank=True) 
     avatar = models.ImageField(verbose_name="Аватар", upload_to="avatars/", blank=True, null=True)
     created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True)
     class Meta:
@@ -13,7 +13,7 @@ class Profile(models.Model):
         verbose_name_plural = "Профили"
 
     def __str__(self):
-        return f"Профиль {self.user.username}"
+        return f"Профиль пользователя #{self.user_id}"
 
 class Tag(models.Model):
     name = models.CharField(verbose_name="Название", max_length=50, blank=False, unique=True, db_index=True)
@@ -31,26 +31,26 @@ class QuestionManager(models.Manager):
         
     def new(self):
         return self.get_queryset().annotate(
-            answers_count=Count("answers", distinct=True), 
-            likes_count=Count("question_likes", distinct=True)
+            answers_count=Count("answers"), 
+            likes_count=Count("question_likes")
             ).order_by('-created_at')
     
     def hot(self):
         return self.get_queryset().annotate(
-            answers_count=Count("answers", distinct=True), 
-            likes_count=Count("question_likes", distinct=True)
+            answers_count=Count("answers"), 
+            likes_count=Count("question_likes")
             ).order_by("-likes_count", "-created_at")
         
     def by_tag(self, tag_name):
         return self.get_queryset().annotate(
-            answers_count=Count("answers", distinct=True), 
-            likes_count=Count("question_likes", distinct=True)            
+            answers_count=Count("answers"), 
+            likes_count=Count("question_likes")            
         ).filter(tags__name=tag_name).order_by("-created_at")
     
 class Question(models.Model):
     title = models.CharField(verbose_name="Заголовок", max_length=255, blank=False, db_index=True)
     text = models.TextField(verbose_name="Текст вопроса", blank=False)
-    author = models.ForeignKey(User, verbose_name="Автор", on_delete=models.CASCADE, related_name="questions", db_index=True)
+    author = models.ForeignKey(User, verbose_name="Автор", on_delete=models.SET_NULL, null=True, related_name="questions", db_index=True)
     created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True, db_index=True)   
     tags = models.ManyToManyField(Tag, verbose_name="Теги", related_name="questions") 
     
@@ -60,12 +60,14 @@ class Question(models.Model):
         verbose_name_plural = "Вопросы"
 
     def __str__(self):
-        return self.title
+        if self.author_id:
+            return f"Вопрос {self.title} от пользователя #{self.author_id}"
+        return f"Вопрос {self.title} от удаленного пользователя"
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, verbose_name="Вопрос", on_delete=models.CASCADE, related_name="answers", db_index=True)
     text = models.TextField(verbose_name="Текст ответа", blank=False)
-    author = models.ForeignKey(User, verbose_name="Автор", on_delete=models.CASCADE, related_name="answers")
+    author = models.ForeignKey(User, verbose_name="Автор", on_delete=models.SET_NULL, null=True, related_name="answers")
     created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True, db_index=True)    
     is_approved = models.BooleanField(verbose_name="Одобренный ответ", default=False)
     class Meta:
@@ -73,7 +75,9 @@ class Answer(models.Model):
         verbose_name_plural = "Ответы"
 
     def __str__(self):
-        return f"Ответ на {self.question.title} от {self.author.username}"
+        if self.author_id:
+            return f"Ответ на вопрос #{self.question_id} от пользователя #{self.author_id}"
+        return f"Ответ на вопрос #{self.question_id} от удаленного пользователя"
     
 class AnswerLike(models.Model):
     answer = models.ForeignKey(Answer, verbose_name="Ответ", on_delete=models.CASCADE, related_name="answer_likes", db_index=True)
@@ -88,7 +92,7 @@ class AnswerLike(models.Model):
         verbose_name_plural = "Лайки на ответ"
 
     def __str__(self):
-        return f"Лайк на {self.answer} от {self.user}"
+        return f"Лайк на ответ #{self.answer_id} от пользователя #{self.user_id}"
     
 class QuestionLike(models.Model):
     question = models.ForeignKey(Question, verbose_name="Вопрос", on_delete=models.CASCADE, related_name="question_likes", db_index=True)
@@ -102,5 +106,5 @@ class QuestionLike(models.Model):
         verbose_name_plural = "Лайки на вопрос"
 
     def __str__(self):
-        return f"Лайк на {self.question.title} от {self.user}"
+        return f"Лайк на вопрос #{self.question_id} от пользователя #{self.user_id}"
     

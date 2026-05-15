@@ -63,7 +63,7 @@ class QuestionPageView(TemplateView):
         question_id = kwargs["question_id"]
         
         question = get_object_or_404(Question, pk=question_id)
-        answers_qs = question.answers.select_related("author").order_by("-created_at")
+        answers_qs = question.answers.select_related("author", "author__profile").order_by("-created_at")
         
         page = paginate(answers_qs, self.request, per_page=10)
         context["question"] = question

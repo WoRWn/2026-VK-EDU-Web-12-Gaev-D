@@ -1,7 +1,7 @@
 {% load static %}
 <a href="#" class="d-flex align-items-center text-decoration-none text-secondary gap-2">
     {% if user.profile.avatar %}
-        <img src="{% static user.profile.avatar.url %}" class="rounded-circle border" width="32" height="32" alt="{{ user.username }}">
+        <img src="{{ user.profile.avatar.url }}" class="rounded-circle border" width="32" height="32" alt="{{ user.username }}">
     {% else %}
         <img src="{% static 'img/person.svg' %}" class="rounded-circle border" width="32" height="32" alt="Default Avatar">
     {% endif %}

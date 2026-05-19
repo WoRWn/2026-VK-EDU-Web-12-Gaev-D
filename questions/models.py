@@ -40,19 +40,19 @@ class QuestionManager(models.Manager):
     def new(self):
         return self.get_queryset().annotate(
             answers_count=Count("answers", distinct=True), 
-            likes_count=Count("question_likes", distinct=True)
+            likes_count=Sum("question_likes", distinct=True)
             ).order_by('-created_at')
     
     def hot(self):
         return self.get_queryset().annotate(
             answers_count=Count("answers", distinct=True), 
-            likes_count=Count("question_likes", distinct=True)
+            likes_count=Sum("question_likes", distinct=True)
             ).order_by("-likes_count", "-created_at")
         
     def by_tag(self, tag_name):
         return self.get_queryset().annotate(
             answers_count=Count("answers", distinct=True), 
-            likes_count=Count("question_likes", distinct=True)            
+            likes_count=Sum("question_likes", distinct=True)            
         ).filter(tags__name=tag_name).order_by("-created_at")
     
 class Question(models.Model):

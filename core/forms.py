@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from questions.models import Profile
+from django.db import transaction
 
 import re
 from questions.models import Answer, Question, Tag
@@ -179,21 +180,19 @@ class SignUpForm(forms.Form):
         return cleaned_data
     
     def save(self):
-        user = User.objects.create_user(
-            username=self.cleaned_data["username"],
-            email=self.cleaned_data["email"],
-            password=self.cleaned_data["password1"]
-        )
-        try:
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=self.cleaned_data["username"],
+                email=self.cleaned_data["email"],
+                password=self.cleaned_data["password1"]
+            )
             Profile.objects.create(
                 user=user,
                 nickname=self.cleaned_data['nickname'],
                 bio=self.cleaned_data.get('bio', ''),
                 avatar=self.cleaned_data.get('avatar')
             )
-        except Exception:
-            user.delete()
-        return user 
+            return user 
     
 class ProfileForm(forms.Form):
     email = forms.EmailField(

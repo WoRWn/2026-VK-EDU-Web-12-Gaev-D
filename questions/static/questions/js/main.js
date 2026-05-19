@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function applyVoteState(btn, vote) {
-        const parent = btn.closest('.d-flex');
+        const parent = btn.closest('.vote-column');
         if (!parent) return;
         const upBtn = parent.querySelector('[data-action="like"]');
         const downBtn = parent.querySelector('[data-action="dislike"]');

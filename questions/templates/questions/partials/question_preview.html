@@ -1,7 +1,7 @@
 {% load static %}
 <div class="card mb-2">
     <div class="card-body d-flex gap-3">
-        <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
+        <div class="vote-column d-flex flex-column align-items-center" style="min-width: 60px;">
             {% if question.author.profile.avatar %}
                 <img src="{{ question.author.profile.avatar.url }}" class="rounded-circle border mb-2" style="width: 40px; height: 40px;" alt="Avatar">
             {% else %}
@@ -17,7 +17,7 @@
                     ▲
                 </button>
             </span>
-            <div class="fw-bold my-1 text-dark fs-5" id="q-rating-{{ question.id }}">{{ question.question_likes.count }}</div>
+            <div class="fw-bold my-1 text-dark fs-5" id="q-rating-{{ question.id }}">{{ question.net_rating }}</div>
             <span class="d-inline-block" title="{% if user.is_authenticated %}Не нравится{% else %}Войдите, чтобы оценить{% endif %}">
                 <button class="btn btn-sm btn-link p-0 vote-btn" 
                         data-id="{{ question.id }}" 

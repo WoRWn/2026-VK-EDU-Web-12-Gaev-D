@@ -35,4 +35,3 @@ build/
 EOF
 
 media/*
-!media/.keep

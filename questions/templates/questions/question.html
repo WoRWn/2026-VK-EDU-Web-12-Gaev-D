@@ -6,7 +6,7 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body p-4">
             <div class="d-flex gap-3">
-                <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
+                <div class="vote-column d-flex flex-column align-items-center" style="min-width: 60px;">
                     {% if question.author.profile.avatar %}
                         <img src="{{ question.author.profile.avatar.url }}" class="rounded-circle border mb-2" width="48" height="48" alt="Author">
                     {% else %}
@@ -17,7 +17,7 @@
                                 data-id="{{ question.id }}" data-type="question" data-action="like"
                                 data-user-vote="{{ question.user_vote|default:0 }}" {% if not user.is_authenticated %}disabled{% endif %}>▲</button>
                     </span>
-                    <div class="fw-bold my-1 text-dark fs-5" id="q-rating-{{ question.id }}">{{ question.question_likes.count }}</div>
+                    <div class="fw-bold my-1 text-dark fs-5" id="q-rating-{{ question.id }}">{{ question.net_rating }}</div>
                     <span class="d-inline-block" title="{% if user.is_authenticated %}Не нравится{% else %}Войдите, чтобы оценить{% endif %}">
                         <button class="btn btn-sm btn-link p-0 vote-btn" 
                                 data-id="{{ question.id }}" data-type="question" data-action="dislike"
@@ -49,7 +49,7 @@
     <div id="answer-{{ answer.id }}" class="card shadow-sm mb-3 {% if answer.is_approved %}border-start border-4 border-success{% endif %}">
         <div class="card-body p-4">
             <div class="d-flex gap-3">
-                <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
+                <div class="vote-column d-flex flex-column align-items-center" style="min-width: 60px;">
                     {% if answer.author.profile.avatar %}
                         <img src="{{ answer.author.profile.avatar.url }}" class="rounded-circle border" width="40" height="40" alt="Author">
                     {% else %}
@@ -60,7 +60,7 @@
                                 data-id="{{ answer.id }}" data-type="answer" data-action="like"
                                 data-user-vote="{{ answer.user_vote|default:0 }}" {% if not user.is_authenticated %}disabled{% endif %}>▲</button>
                     </span>
-                    <div class="fw-bold my-1 text-dark fs-5" id="a-rating-{{ answer.id }}">{{ answer.answer_likes.count }}</div>
+                    <div class="fw-bold my-1 text-dark fs-5" id="a-rating-{{ answer.id }}">{{ answer.net_rating }}</div>
                     <span class="d-inline-block" title="{% if user.is_authenticated %}Не нравится{% else %}Войдите, чтобы оценить{% endif %}">
                         <button class="btn btn-sm btn-link p-0 vote-btn" 
                                 data-id="{{ answer.id }}" data-type="answer" data-action="dislike"

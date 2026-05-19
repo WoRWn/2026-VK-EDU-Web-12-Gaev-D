@@ -6,7 +6,7 @@ from django.views.generic import TemplateView, FormView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from .models import Question
-from core.forms import QuestionForm, AnswerForm
+from questions.forms import QuestionForm, AnswerForm
 
 from core.views import get_sidebar_context
 from questions.models import Question, Tag

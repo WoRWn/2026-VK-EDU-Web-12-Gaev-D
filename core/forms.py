@@ -1,37 +1,20 @@
 from django import forms
-from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from questions.models import Profile
 
-import re
-from questions.models import Answer, Question, Tag
-from random import randint
-
-
 User = get_user_model()
 
 class LoginForm(forms.Form):
-    username = forms.CharField(
-        label="Логин",
+    username_or_email = forms.CharField(
+        label="Логин или Email",
         max_length=255,
         widget=forms.TextInput(attrs={
             'class': 'form-control form-control-lg',
             'id': 'loginInput',
-            'placeholder': 'Введите ваш логин',
+            'placeholder': 'Введите логин или email',
             'autocomplete': 'username',
-            'required': True
-        })
-    )
-    email = forms.EmailField(
-        label="Email",
-        max_length=254,
-        widget=forms.EmailInput(attrs={
-            'class': 'form-control form-control-lg',
-            'id': 'emailInput',
-            'placeholder': 'example@mail.ru',
-            'autocomplete': 'email',
             'required': True
         })
     )
@@ -48,16 +31,16 @@ class LoginForm(forms.Form):
     
     def clean(self):
         cleaned_data = super().clean()
-        username = cleaned_data.get("username")
-        email = cleaned_data.get("email")
+        identifier = cleaned_data.get("username_or_email")
         password = cleaned_data.get("password")
         
-        if username and email and password:
-            user = User.objects.filter(username=username, email=email).first()
-            
+        if identifier and password:
+            user = User.objects.filter(username=identifier).first()
+            if not user:
+                user = User.objects.filter(email=identifier).first()
             
             if user is None or not user.check_password(password):
-                raise forms.ValidationError("Неверный логин, email или пароль")
+                raise forms.ValidationError("Неверный логин/email или пароль")
             
             cleaned_data["user"] = user
         return cleaned_data
@@ -98,6 +81,7 @@ class SignUpForm(forms.Form):
     bio = forms.CharField(
         label="О себе",
         required=False,
+        max_length=500,
         widget=forms.Textarea(attrs={
             'class': 'form-control form-control-lg',
             'id': 'regBio',
@@ -133,6 +117,12 @@ class SignUpForm(forms.Form):
         })
     )
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.errors.get('bio'):
+            existing_class = self.fields['bio'].widget.attrs.get('class', '')
+            self.fields['bio'].widget.attrs['class'] = f"{existing_class} is-invalid".strip()
+    
     def clean_username(self):
         username = self.cleaned_data.get("username")
         if User.objects.filter(username=username).exists():
@@ -143,6 +133,7 @@ class SignUpForm(forms.Form):
         email = self.cleaned_data.get("email")
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError("Этот email уже зарегистрирован.")
+        return email
         
     def clean_avatar(self):
         avatar = self.cleaned_data.get("avatar")
@@ -208,6 +199,7 @@ class ProfileForm(forms.Form):
     bio = forms.CharField(
         label="О себе",
         required=False,
+        max_length=500,
         widget=forms.Textarea(attrs={
             'class': 'form-control form-control-lg',
             'id': 'settingsBio',
@@ -233,6 +225,10 @@ class ProfileForm(forms.Form):
             if hasattr(user, "profile"):
                 self.fields["nickname"].initial = user.profile.nickname
                 self.fields["bio"].initial = user.profile.bio
+                
+        if self.errors.get('bio'):
+            existing_class = self.fields['bio'].widget.attrs.get('class', '')
+            self.fields['bio'].widget.attrs['class'] = f"{existing_class} is-invalid".strip()
                 
     def clean_email(self):
         email = self.cleaned_data.get("email")
@@ -260,90 +256,4 @@ class ProfileForm(forms.Form):
         if self.cleaned_data.get("avatar"):
             profile.avatar = self.cleaned_data["avatar"]
         profile.save()
-        
-class QuestionForm(forms.ModelForm):
-    tags_input = forms.CharField(
-        label="Теги",
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'id': 'questionTags',
-            'placeholder': 'Например: witcher-3, loot, story',
-            'maxlength': '100'
-        })
-    )
-    
-    class Meta:
-        model = Question
-        fields = ["title", "text"]
-        widgets = {
-           'title': forms.TextInput(attrs={
-                'class': 'form-control form-control-lg',
-                'id': 'questionTitle',
-                'placeholder': 'Например: Как победить Малению в Elden Ring?',
-                'maxlength': '150',
-                'required': True
-            }),
-            'text': forms.Textarea(attrs={
-                'class': 'form-control',
-                'id': 'questionText',
-                'rows': '7',
-                'placeholder': 'Опишите проблему подробно...',
-                'maxlength': '5000',
-                'required': True
-            }),
-        }
-        
-    def clean_tags_input(self):
-        raw = self.cleaned_data.get("tags_input", "")
-        tags = [t.strip().lower() for t in raw.split(",") if t.strip()]
-        
-        pattern = re.compile(r"^[a-z0-9-]+$")
-        for t in tags:
-            if not pattern.match(t):
-                raise forms.ValidationError(f"Тег '{t}' содержит недопустимые символы. Только латиница, цифры и дефисы.")
-        
-        if len(tags) > 10:
-            raise forms.ValidationError("Максимум 10 тегов.")
-        return tags
-    
-    def save(self, commit=True, author=None):
-        instance = super().save(commit=False)
-        if author:
-            instance.author = author
-        if commit:
-            instance.save()
-            for tag_name in self.cleaned_data.get("tags_input", []):
-                tag, created = Tag.objects.get_or_create(name=tag_name)
-                if created:
-                    tag.color = generate_random_hex_color()
-                    tag.save(update_fields=["color"])
-                instance.tags.add(tag)
-        return instance
-        
-class AnswerForm(forms.ModelForm):
-    class Meta:
-        model = Answer
-        fields = ["text"]
-        widgets = {
-            'text': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': '5',
-                'placeholder': 'Напишите подробный ответ...',
-                'required': True
-            }),
-        }
-        
-    def save(self, commit=True, question=None, author=None):
-        instance = super().save(commit=False)
-        if question:
-            instance.question = question
-        if author:
-            instance.author = author
-        if commit:
-            instance.save()
-        return instance
-    
-def generate_random_hex_color():
-    return f"#{randint(0, 0xFFFFFF):06X}"
         

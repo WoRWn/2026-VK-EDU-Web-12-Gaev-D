@@ -6,27 +6,35 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body p-4">
             <div class="d-flex gap-3">
-                <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
-                    {% if question.user_avatar %}
-                        <img src="{% static question.user_avatar %}" class="rounded-circle border mb-2" width="48" height="48" alt="Author">
+                <div class="vote-column d-flex flex-column align-items-center" style="min-width: 60px;">
+                    {% if question.author.profile.avatar %}
+                        <img src="{{ question.author.profile.avatar.url }}" class="rounded-circle border mb-2" width="48" height="48" alt="Author">
                     {% else %}
                         <img src="{% static 'img/person.svg' %}" class="rounded-circle border mb-2" width="48" height="48" alt="Author">
-                    {% endif %}
-                    <button class="btn btn-sm btn-link p-0 text-secondary">▲</button>
-                    <div class="fw-bold my-1 text-dark fs-5">{{ question.votes }}</div>
-                    <button class="btn btn-sm btn-link p-0 text-secondary">▼</button>
+                    {% endif %}    
+                    <span class="d-inline-block" title="{% if user.is_authenticated %}Нравится{% else %}Войдите, чтобы оценить{% endif %}">
+                        <button class="btn btn-sm btn-link p-0 vote-btn" 
+                                data-id="{{ question.id }}" data-type="question" data-action="like"
+                                data-user-vote="{{ question.user_vote|default:0 }}" {% if not user.is_authenticated %}disabled{% endif %}>▲</button>
+                    </span>
+                    <div class="fw-bold my-1 text-dark fs-5" id="q-rating-{{ question.id }}">{{ question.net_rating }}</div>
+                    <span class="d-inline-block" title="{% if user.is_authenticated %}Не нравится{% else %}Войдите, чтобы оценить{% endif %}">
+                        <button class="btn btn-sm btn-link p-0 vote-btn" 
+                                data-id="{{ question.id }}" data-type="question" data-action="dislike"
+                                data-user-vote="{{ question.user_vote|default:0 }}" {% if not user.is_authenticated %}disabled{% endif %}>▼</button>
+                    </span>
                 </div>
                 <div class="flex-grow-1 d-flex flex-column">
                     <h1 class="h3 mb-3 fw-bold text-dark">{{ question.title }}</h1>
                     <div class="text-secondary mb-3 lh-lg">{{ question.text|linebreaks }}</div>
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-auto pt-3 border-top">
-                        <div class="text-muted-small">Автор вопроса: <a href="#" class="text-decoration-none text-secondary fw-bold">{{ question.username }}</a></div>
+                        <div class="text-muted-small">Автор вопроса: <a href="#" class="text-decoration-none text-secondary fw-bold">{{ question.author.username }}</a></div>
                         <div class="d-flex flex-wrap gap-2">
-                            {% for tag in question.tags %}
+                            {% for tag in question.tags.all %}
                                 {% include 'partials/tag_card.html' %}
                             {% endfor %}
                         </div>
-                        <div class="text-muted small"><span>задан {{ question.post_time }} назад</span></div>
+                        <div class="text-muted small"><span>задан {{ question.created_at|timesince }} назад</span></div>
                     </div>
                 </div>
             </div>
@@ -34,35 +42,48 @@
     </div>
 
     <div class="d-flex align-items-center justify-content-between mb-3 px-1">
-        <h2 class="h5 mb-0 text-secondary">Ответов: <span class="fw-bold text-dark fs-4">{{ question.answers_cnt }}</span></h2>
+        <h2 class="h5 mb-0 text-secondary">Ответов: <span class="fw-bold text-dark fs-4">{{ question.answers.count }}</span></h2>
     </div>
 
-    {% for answer in question.answers %}
-    <div class="card shadow-sm mb-3 {% if answer.approved %}border-start border-4 border-success{% endif %}">
+    {% for answer in answers %}
+    <div id="answer-{{ answer.id }}" class="card shadow-sm mb-3 {% if answer.is_approved %}border-start border-4 border-success{% endif %}">
         <div class="card-body p-4">
             <div class="d-flex gap-3">
-                <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
-                    {% if answer.user_avatar %}
-                        <img src="{% static answer.user_avatar %}" class="rounded-circle border" width="40" height="40" alt="Author">
+                <div class="vote-column d-flex flex-column align-items-center" style="min-width: 60px;">
+                    {% if answer.author.profile.avatar %}
+                        <img src="{{ answer.author.profile.avatar.url }}" class="rounded-circle border" width="40" height="40" alt="Author">
                     {% else %}
                         <img src="{% static 'img/person.svg' %}" class="rounded-circle border" width="40" height="40" alt="Author">
                     {% endif %}
-                    <button class="btn btn-sm btn-link p-0 text-secondary">▲</button>
-                    <div class="fw-bold my-1 text-dark fs-5">{{ answer.votes }}</div>
-                    <button class="btn btn-sm btn-link p-0 text-secondary">▼</button>
-                    {% if answer.approved %}
-                    <button class="btn btn-sm btn-link p-0 text-success mt-2 fs-4">✓</button>
-                    {% else %}
-                    <button class="btn btn-sm btn-link p-0 text-secondary mt-2 fs-4">✓</button>
+                    <span class="d-inline-block" title="{% if user.is_authenticated %}Нравится{% else %}Войдите, чтобы оценить{% endif %}">
+                        <button class="btn btn-sm btn-link p-0 vote-btn" 
+                                data-id="{{ answer.id }}" data-type="answer" data-action="like"
+                                data-user-vote="{{ answer.user_vote|default:0 }}" {% if not user.is_authenticated %}disabled{% endif %}>▲</button>
+                    </span>
+                    <div class="fw-bold my-1 text-dark fs-5" id="a-rating-{{ answer.id }}">{{ answer.net_rating }}</div>
+                    <span class="d-inline-block" title="{% if user.is_authenticated %}Не нравится{% else %}Войдите, чтобы оценить{% endif %}">
+                        <button class="btn btn-sm btn-link p-0 vote-btn" 
+                                data-id="{{ answer.id }}" data-type="answer" data-action="dislike"
+                                data-user-vote="{{ answer.user_vote|default:0 }}" {% if not user.is_authenticated %}disabled{% endif %}>▼</button>
+                    </span>
+            
+                    {% if question.author == user %}
+                        <button class="btn btn-sm btn-link p-0 correct-btn mt-2 fs-4 {% if answer.is_approved %}text-success{% else %}text-secondary{% endif %}"
+                                data-qid="{{ question.id }}"
+                                data-aid="{{ answer.id }}"
+                                title="{% if user.is_authenticated %}Отметить как правильный{% else %}Войдите, чтобы управлять ответами{% endif %}"
+                                {% if not user.is_authenticated %}disabled{% endif %}>
+                            ✓
+                        </button>
                     {% endif %}
                 </div>
                 <div class="flex-grow-1 d-flex flex-column">
                     <div class="text-secondary mb-3 lh-lg">{{ answer.text|linebreaks }}</div>
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top mt-auto">
                         <div class="d-flex align-items-center gap-2">
-                            <a href="#" class="text-decoration-none text-secondary fw-bold small">Автор ответа: {{ answer.username }}</a>
+                            <a href="#" class="text-decoration-none text-secondary fw-bold small">Автор ответа: {{ answer.author.username }}</a>
                         </div>
-                        <div class="text-muted small">отвечен {{ answer.post_time }} назад</div>
+                        <div class="text-muted small">отвечен {{ answer.created_at|timesince }} назад</div>
                     </div>
                 </div>
             </div>
@@ -77,14 +98,28 @@
     <div class="card shadow-sm mt-4">
         <div class="card-body p-4">
             <h3 class="h5 mb-3 fw-bold">Ваш ответ</h3>
-            <form>
-                <div class="mb-3">
-                    <textarea class="form-control" rows="5" placeholder="Напишите подробный ответ..."></textarea>
+            {% if user.is_authenticated %}
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+                    {% if answer_form.non_field_errors %}
+                    <div class="alert alert-danger mb-3">{{ answer_form.non_field_errors }}</div>
+                    {% endif %}
+                    <div class="mb-3">
+                        {{ answer_form.text }}
+                        {% if answer_form.text.errors %}
+                        <div class="invalid-feedback d-block">{{ answer_form.text.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex">
+                        <button type="submit" class="btn btn-success px-4 fw-bold">Опубликовать</button>
+                    </div>
+                </form>
+            {% else %}
+                <textarea class="form-control" rows="5" placeholder="Войдите, чтобы оставить ответ..." disabled title="Войдите, чтобы ответить"></textarea>
+                <div class="mt-2 text-muted small">
+                    <a href="{% url 'login' %}?next={{ request.path }}">Войдите</a> или <a href="{% url 'signup' %}">зарегистрируйтесь</a>, чтобы ответить.
                 </div>
-                <div class="d-flex">
-                    <button type="submit" class="btn btn-success px-4 fw-bold">Опубликовать</button>
-                </div>
-            </form>
+            {% endif %}
         </div>
     </div>
 </section>

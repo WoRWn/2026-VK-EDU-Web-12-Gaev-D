@@ -6,27 +6,43 @@
         <div class="card-body p-4 p-md-5">
             <h2 class="h3 mb-4 fw-bold">Вход в аккаунт</h2>
 
+            {% if form.non_field_errors %}
             <div class="alert alert-danger d-flex align-items-center mb-4 fade show" role="alert">
-                <div><strong>Ошибка входа:</strong> Неверный логин или пароль.</div>
+                <div><strong>Ошибка входа:</strong> {{ form.non_field_errors }}</div>
             </div>
+            {% endif %}
             
-            <form action="#" method="POST" novalidate>
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                
                 <div class="mb-3">
-                    <label for="loginInput" class="form-label fw-semibold fs-5">Логин или Email</label>
-                    <input type="text" class="form-control form-control-lg" id="loginInput" name="login" 
-                            placeholder="Введите ваш логин или email" 
-                            maxlength="150" required autocomplete="username">
+                    <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold fs-5">{{ form.username.label }}</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
+                    {% else %}
                     <div class="form-text">Укажите данные для входа.</div>
-                    <div class="invalid-feedback">Некорректный логин или email.</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold fs-5">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>
+                    {% else %}
+                    <div class="form-text">Укажите email, привязанный к аккаунту.</div>
+                    {% endif %}
                 </div>
 
                 <div class="mb-4">
-                    <label for="passwordInput" class="form-label fw-semibold fs-5">Пароль</label>
-                    <input type="password" class="form-control form-control-lg" id="passwordInput" name="password" 
-                            placeholder="Введите пароль" 
-                            maxlength="128" required autocomplete="current-password">
+                    <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold fs-5">{{ form.password.label }}</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <div class="invalid-feedback d-block">{{ form.password.errors.0 }}</div>
+                    {% else %}
                     <div class="form-text">Пароль чувствителен к регистру.</div>
-                    <div class="invalid-feedback">Некорректный пароль.</div>
+                    {% endif %}
                 </div>
 
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">

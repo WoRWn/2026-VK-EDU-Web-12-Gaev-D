@@ -15,8 +15,13 @@ class Command(BaseCommand):
         parser.add_argument("ratio", type=int)
 
     def bulk_create_batch(self, model, objects):
+        """Создает объекты пачками и возвращает список всех созданных объектов с ID"""
+        all_created = []
         for i in range(0, len(objects), BATCH_SIZE):
-            model.objects.bulk_create(objects[i : i + BATCH_SIZE], ignore_conflicts=True)
+            batch = objects[i : i + BATCH_SIZE]
+            created = model.objects.bulk_create(batch)
+            all_created.extend(created)
+        return all_created
 
     def handle(self, *args, **options):
         ratio = options["ratio"]
@@ -44,15 +49,16 @@ class Command(BaseCommand):
                 password=TEST_PASSWORD_HASH
             ) for _ in range(count)
         ]
-        self.bulk_create_batch(User, users)
-        ids = list(User.objects.values_list("id", flat=True).order_by("id")[:count])
+        # ✅ Берем ID прямо из результата bulk_create
+        created_users = User.objects.bulk_create(users)
+        ids = [u.id for u in created_users]
         self.stdout.write(f"Created {len(ids)} users.")
         return ids
 
     def create_profiles(self, user_ids):
         self.stdout.write(f"Creating {len(user_ids)} profiles...")
         profiles = [Profile(user_id=uid, nickname=fake.name()) for uid in user_ids]
-        self.bulk_create_batch(Profile, profiles)
+        Profile.objects.bulk_create(profiles)
         self.stdout.write(f"Created {len(profiles)} profiles.")
 
     def create_tags(self, count):
@@ -63,8 +69,9 @@ class Command(BaseCommand):
                 color="#{:06x}".format(random.randint(0, 0xFFFFFF))
             ) for i in range(count)
         ]
-        self.bulk_create_batch(Tag, tags)
-        ids = list(Tag.objects.values_list("id", flat=True).order_by("id")[:count])
+        # ✅ Берем ID прямо из результата bulk_create
+        created_tags = Tag.objects.bulk_create(tags)
+        ids = [t.id for t in created_tags]
         self.stdout.write(f"Created {len(ids)} tags.")
         return ids
 
@@ -72,6 +79,8 @@ class Command(BaseCommand):
         self.stdout.write(f"Creating {count} questions...")
         authors = random.choices(user_ids, k=count)
         questions = []
+        all_ids = []
+        
         for i in range(count):
             questions.append(
                 Question(
@@ -82,19 +91,25 @@ class Command(BaseCommand):
                 )
             )
             if len(questions) >= BATCH_SIZE:
-                self.bulk_create_batch(Question, questions)
+                # ✅ Собираем ID из каждого батча
+                created = Question.objects.bulk_create(questions)
+                all_ids.extend([q.id for q in created])
                 questions = []
+        
         if questions:
-            self.bulk_create_batch(Question, questions)
-        ids = list(Question.objects.values_list("id", flat=True).order_by("id")[:count])
-        self.stdout.write(f"Created {len(ids)} questions.")
-        return ids
+            created = Question.objects.bulk_create(questions)
+            all_ids.extend([q.id for q in created])
+            
+        self.stdout.write(f"Created {len(all_ids)} questions.")
+        return all_ids
 
     def create_question_tags(self, count, question_ids, tag_ids):
         self.stdout.write(f"Creating {count} question-tag links...")
-        q_ids = random.choices(question_ids, k=count)
-        t_ids = random.choices(tag_ids, k=count)
-        links = [Question.tags.through(question_id=q, tag_id=t) for q, t in zip(q_ids, t_ids)]
+        pairs = set()
+        while len(pairs) < count:
+            pairs.add((random.choice(question_ids), random.choice(tag_ids)))
+        
+        links = [Question.tags.through(question_id=q, tag_id=t) for q, t in pairs]
         self.bulk_create_batch(Question.tags.through, links)
         self.stdout.write(f"Created {len(links)} links.")
 
@@ -103,6 +118,8 @@ class Command(BaseCommand):
         q_ids = random.choices(question_ids, k=count)
         u_ids = random.choices(user_ids, k=count)
         answers = []
+        all_ids = []
+        
         for i in range(count):
             answers.append(
                 Answer(
@@ -113,26 +130,56 @@ class Command(BaseCommand):
                 )
             )
             if len(answers) >= BATCH_SIZE:
-                self.bulk_create_batch(Answer, answers)
+                # ✅ Собираем ID из каждого батча
+                created = Answer.objects.bulk_create(answers)
+                all_ids.extend([a.id for a in created])
                 answers = []
+                
         if answers:
-            self.bulk_create_batch(Answer, answers)
-        ids = list(Answer.objects.values_list("id", flat=True).order_by("id")[:count])
-        self.stdout.write(f"Created {len(ids)} answers.")
-        return ids
+            created = Answer.objects.bulk_create(answers)
+            all_ids.extend([a.id for a in created])
+            
+        self.stdout.write(f"Created {len(all_ids)} answers.")
+        return all_ids
 
     def create_question_likes(self, count, user_ids, question_ids):
         self.stdout.write(f"Creating {count} question likes...")
-        u_ids = random.choices(user_ids, k=count)
-        q_ids = random.choices(question_ids, k=count)
-        likes = [QuestionLike(user_id=u, question_id=q, created_at=fake.date_time()) for u, q in zip(u_ids, q_ids)]
-        self.bulk_create_batch(QuestionLike, likes)
-        self.stdout.write(f"Created {len(likes)} question likes.")
+        pairs = set()
+        batch = []
+        
+        while len(pairs) < count:
+            pair = (random.choice(user_ids), random.choice(question_ids))
+            if pair not in pairs:
+                pairs.add(pair)
+                u, q = pair
+                batch.append(QuestionLike(user_id=u, question_id=q, value=random.choice([1, -1])))
+                
+                if len(batch) >= BATCH_SIZE:
+                    QuestionLike.objects.bulk_create(batch)
+                    batch = []
+        
+        if batch:
+            QuestionLike.objects.bulk_create(batch)
+            
+        self.stdout.write(f"Created {len(pairs)} question likes.")
 
     def create_answer_likes(self, count, user_ids, answer_ids):
         self.stdout.write(f"Creating {count} answer likes...")
-        u_ids = random.choices(user_ids, k=count)
-        a_ids = random.choices(answer_ids, k=count)
-        likes = [AnswerLike(user_id=u, answer_id=a, created_at=fake.date_time()) for u, a in zip(u_ids, a_ids)]
-        self.bulk_create_batch(AnswerLike, likes)
-        self.stdout.write(f"Created {len(likes)} answer likes.")
+        pairs = set()
+        batch = []
+        
+        while len(pairs) < count:
+            pair = (random.choice(user_ids), random.choice(answer_ids))
+            if pair not in pairs:
+                pairs.add(pair)
+                u, a = pair
+                batch.append(AnswerLike(user_id=u, answer_id=a, value=random.choice([1, -1])))
+                
+                if len(batch) >= BATCH_SIZE:
+                    AnswerLike.objects.bulk_create(batch)
+                    batch = []
+        
+        if batch:
+            AnswerLike.objects.bulk_create(batch)
+            
+        self.stdout.write(f"Created {len(pairs)} answer likes.")

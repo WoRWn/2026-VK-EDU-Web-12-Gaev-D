@@ -7,26 +7,26 @@
         <div class="card-body p-4">
             <div class="d-flex gap-3">
                 <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
-                    {% if question.user_avatar %}
-                        <img src="{% static question.user_avatar %}" class="rounded-circle border mb-2" width="48" height="48" alt="Author">
+                    {% if question.avatar and question.author.profile.avatar %}
+                        <img src="{{ question.author.profile.avatar.url }}" class="rounded-circle border mb-2" width="48" height="48" alt="Author">
                     {% else %}
                         <img src="{% static 'img/person.svg' %}" class="rounded-circle border mb-2" width="48" height="48" alt="Author">
                     {% endif %}
                     <button class="btn btn-sm btn-link p-0 text-secondary">▲</button>
-                    <div class="fw-bold my-1 text-dark fs-5">{{ question.votes }}</div>
+                    <div class="fw-bold my-1 text-dark fs-5">{{ question.question_likes.count }}</div>
                     <button class="btn btn-sm btn-link p-0 text-secondary">▼</button>
                 </div>
                 <div class="flex-grow-1 d-flex flex-column">
                     <h1 class="h3 mb-3 fw-bold text-dark">{{ question.title }}</h1>
                     <div class="text-secondary mb-3 lh-lg">{{ question.text|linebreaks }}</div>
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-auto pt-3 border-top">
-                        <div class="text-muted-small">Автор вопроса: <a href="#" class="text-decoration-none text-secondary fw-bold">{{ question.username }}</a></div>
+                        <div class="text-muted-small">Автор вопроса: <a href="#" class="text-decoration-none text-secondary fw-bold">{{ question.author.username|default:"Удаленный пользователь" }}</a></div>
                         <div class="d-flex flex-wrap gap-2">
-                            {% for tag in question.tags %}
+                            {% for tag in question.tags.all %}
                                 {% include 'partials/tag_card.html' %}
                             {% endfor %}
                         </div>
-                        <div class="text-muted small"><span>задан {{ question.post_time }} назад</span></div>
+                        <div class="text-muted small"><span>задан {{ question.created_at|timesince }} назад</span></div>
                     </div>
                 </div>
             </div>
@@ -34,23 +34,23 @@
     </div>
 
     <div class="d-flex align-items-center justify-content-between mb-3 px-1">
-        <h2 class="h5 mb-0 text-secondary">Ответов: <span class="fw-bold text-dark fs-4">{{ question.answers_cnt }}</span></h2>
+        <h2 class="h5 mb-0 text-secondary">Ответов: <span class="fw-bold text-dark fs-4">{{ question.answers.count }}</span></h2>
     </div>
 
-    {% for answer in question.answers %}
-    <div class="card shadow-sm mb-3 {% if answer.approved %}border-start border-4 border-success{% endif %}">
+    {% for answer in answers %}
+    <div class="card shadow-sm mb-3 {% if answer.is_approved %}border-start border-4 border-success{% endif %}">
         <div class="card-body p-4">
             <div class="d-flex gap-3">
                 <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
-                    {% if answer.user_avatar %}
-                        <img src="{% static answer.user_avatar %}" class="rounded-circle border" width="40" height="40" alt="Author">
+                    {% if answer.author.profile.avatar %}
+                        <img src="{{ answer.author.profile.avatar.url }}" class="rounded-circle border" width="40" height="40" alt="Author">
                     {% else %}
                         <img src="{% static 'img/person.svg' %}" class="rounded-circle border" width="40" height="40" alt="Author">
                     {% endif %}
                     <button class="btn btn-sm btn-link p-0 text-secondary">▲</button>
-                    <div class="fw-bold my-1 text-dark fs-5">{{ answer.votes }}</div>
+                    <div class="fw-bold my-1 text-dark fs-5">{{ answer.answer_likes.count }}</div>
                     <button class="btn btn-sm btn-link p-0 text-secondary">▼</button>
-                    {% if answer.approved %}
+                    {% if answer.is_approved %}
                     <button class="btn btn-sm btn-link p-0 text-success mt-2 fs-4">✓</button>
                     {% else %}
                     <button class="btn btn-sm btn-link p-0 text-secondary mt-2 fs-4">✓</button>
@@ -60,9 +60,9 @@
                     <div class="text-secondary mb-3 lh-lg">{{ answer.text|linebreaks }}</div>
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top mt-auto">
                         <div class="d-flex align-items-center gap-2">
-                            <a href="#" class="text-decoration-none text-secondary fw-bold small">Автор ответа: {{ answer.username }}</a>
+                            <a href="#" class="text-decoration-none text-secondary fw-bold small">Автор ответа: {{ answer.author.username|default:"Удаленный пользователь" }}</a>
                         </div>
-                        <div class="text-muted small">отвечен {{ answer.post_time }} назад</div>
+                        <div class="text-muted small">отвечен {{ answer.created_at|timesince }} назад</div>
                     </div>
                 </div>
             </div>

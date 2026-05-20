@@ -1,26 +1,14 @@
 from typing import Any
 
-from django.shortcuts import render
+from django.db.models import Count
 from django.views.generic import TemplateView
 
-
-best_members = [
-    {
-       'user_id' : i,
-       'username': f'user_{i}',
-       'user_avatar': None
-    } for i in range(1, 6)
-]
-
-popular_tags = [
-    {
-        'name': f'tag_{i}',
-        'color': '#4a6fa5'
-    } for i in range(1, 6)
-]
+from questions.models import Tag, User
 
 
 def get_sidebar_context() -> dict[str, Any]:
+    popular_tags = Tag.objects.annotate(q_count=Count("questions")).order_by("-q_count")[:5]
+    best_members = User.objects.annotate(q_count=Count("questions")).select_related("profile").order_by("-q_count")[:5]
     return { 'best_members': best_members, 'popular_tags': popular_tags }
 
 

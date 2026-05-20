@@ -1,8 +1,12 @@
 from typing import Any
 
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.core.paginator import EmptyPage, Paginator, PageNotAnInteger
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, FormView
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from .models import Question
+from questions.forms import QuestionForm, AnswerForm
 
 from core.views import get_sidebar_context
 from questions.models import Question, Tag
@@ -71,11 +75,38 @@ class QuestionPageView(TemplateView):
         context["page"] = page
         context.update(get_sidebar_context())
         return context
+    
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        
+        question_id = kwargs["question_id"]
+        question = get_object_or_404(Question, pk=question_id)
+        form = AnswerForm(request.POST)
+        
+        if form.is_valid():
+            answer = form.save(question=question, author=request.user)
+            return redirect(f"/question/{question_id}/#answer-{answer.id}")
+        
+        context = self.get_context_data(**kwargs)
+        context["answer_form"] = form
+        return self.render_to_response(context)
+        
+        
 
-class AskPageView(TemplateView):
+@method_decorator(login_required, name='dispatch')
+class AskPageView(FormView):
     template_name = 'questions/ask.html'
+    form_class = QuestionForm
+    success_url = "/"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context.update(get_sidebar_context())
         return context
+    
+    def form_valid(self, form):
+        question = form.save(author=self.request.user)
+        return redirect("question", question_id = question.id)
+
+    

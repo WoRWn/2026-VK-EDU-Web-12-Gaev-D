@@ -38,7 +38,7 @@
     </div>
 
     {% for answer in answers %}
-    <div class="card shadow-sm mb-3 {% if answer.is_approved %}border-start border-4 border-success{% endif %}">
+    <div id="answer-{{ answer.id }}" class="card shadow-sm mb-3 {% if answer.is_approved %}border-start border-4 border-success{% endif %}">
         <div class="card-body p-4">
             <div class="d-flex gap-3">
                 <div class="d-flex flex-column align-items-center" style="min-width: 60px;">
@@ -77,14 +77,35 @@
     <div class="card shadow-sm mt-4">
         <div class="card-body p-4">
             <h3 class="h5 mb-3 fw-bold">Ваш ответ</h3>
-            <form>
-                <div class="mb-3">
-                    <textarea class="form-control" rows="5" placeholder="Напишите подробный ответ..."></textarea>
+            {% if user.is_authenticated %}
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    {% if answer_form.non_field_errors %}
+                    <div class="alert alert-danger mb-3">{{ answer_form.non_field_errors }}</div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        {# Добавляем класс is-invalid, если есть ошибки #}
+                        {{ answer_form.text }}
+                        
+                        {% if answer_form.text.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ answer_form.text.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex">
+                        <button type="submit" class="btn btn-success px-4 fw-bold">Опубликовать</button>
+                    </div>
+                </form>
+            {% else %}
+                <textarea class="form-control" rows="5" placeholder="Войдите, чтобы оставить ответ..." disabled title="Войдите, чтобы ответить"></textarea>
+                <div class="mt-2 text-muted small">
+                    <a href="{% url 'login' %}?next={{ request.path }}">Войдите</a> или <a href="{% url 'signup' %}">зарегистрируйтесь</a>, чтобы ответить.
                 </div>
-                <div class="d-flex">
-                    <button type="submit" class="btn btn-success px-4 fw-bold">Опубликовать</button>
-                </div>
-            </form>
+            {% endif %}
         </div>
     </div>
 </section>

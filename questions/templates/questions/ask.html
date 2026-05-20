@@ -5,25 +5,43 @@
     <div class="card shadow-sm border-0">
         <div class="card-body p-4 p-md-5">
             <h2 class="h3 mb-4 fw-bold">Новый вопрос</h2>
+            
+            {% if form.non_field_errors %}
             <div class="alert alert-danger d-flex align-items-center mb-4 fade show" role="alert">
-                <div><strong>Ошибка публикации:</strong> Пожалуйста, проверьте правильность заполнения полей.</div>
+                <div><strong>Ошибка публикации:</strong> {{ form.non_field_errors }}</div>
             </div>
-            <form action="#" method="POST" novalidate>
+            {% endif %}
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                
                 <div class="mb-3">
-                    <label for="questionTitle" class="form-label fw-semibold fs-5">Заголовок вопроса</label>
-                    <input type="text" class="form-control form-control-lg" id="questionTitle" name="title" placeholder="Например: Как победить Малению в Elden Ring?" maxlength="150" required>
-                    <div class="form-text">Кратко опишите суть. От 10 до 150 символов.</div>
+                    <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold fs-5">Заголовок вопроса</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                    <div class="invalid-feedback d-block">{{ form.title.errors.0 }}</div>
+                    {% endif %}
+                    <div class="form-text">Кратко опишите суть. До 255 символов</div>
                 </div>
+
                 <div class="mb-3">
-                    <label for="questionText" class="form-label fw-semibold fs-5">Подробное описание</label>
-                    <textarea class="form-control" id="questionText" name="text" rows="7" placeholder="Опишите проблему подробно..." maxlength="5000" required></textarea>
-                    <div class="form-text">Подробно опишите проблему. От 20 до 5000 символов.</div>
+                    <label for="{{ form.text.id_for_label }}" class="form-label fw-semibold fs-5">Подробное описание</label>
+                    {{ form.text }}
+                    {% if form.text.errors %}
+                    <div class="invalid-feedback d-block">{{ form.text.errors.0 }}</div>
+                    {% endif %}
+                    <div class="form-text">Подробно опишите проблему. До 5000 символов.</div>
                 </div>
+
                 <div class="mb-4">
-                    <label for="questionTags" class="form-label fw-semibold fs-5">Теги</label>
-                    <input type="text" class="form-control" id="questionTags" name="tags" placeholder="Например: witcher-3, loot, story" maxlength="100">
+                    <label for="{{ form.tags_input.id_for_label }}" class="form-label fw-semibold fs-5">Теги</label>
+                    {{ form.tags_input }}
+                    {% if form.tags_input.errors %}
+                    <div class="invalid-feedback d-block">{{ form.tags_input.errors.0 }}</div>
+                    {% endif %}
                     <div class="form-text">До 10 тегов через запятую. Только латиница, цифры и дефисы.</div>
                 </div>
+
                 <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
                     <a href="{% url 'index' %}" class="btn btn-outline-secondary px-4">Отмена</a>
                     <button type="submit" class="btn btn-success px-5 fw-bold">Задать вопрос</button>

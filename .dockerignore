@@ -1,0 +1,58 @@
+# Виртуальное окружение
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Django
+db.sqlite3
+*.sqlite3
+*.log
+media/        
+staticfiles/  
+
+# Переменные окружения
+.env
+.env.local
+.env.docker
+.conf/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Сборки/дистрибутивы
+dist/
+build/
+*.egg-info/
+EOF
+
+.git/
+.gitignore
+
+tests/
+docs/
+README.md
+LICENSE
+
+# Docker-файлы
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore
+
+# Временные файлы*.egg-info/
+EOF
+tmp/
+temp/
+*.tmp
+*.bak

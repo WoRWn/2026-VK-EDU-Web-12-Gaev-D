@@ -6,32 +6,37 @@
         <div class="card-body p-4 p-md-5">
             <h2 class="h3 mb-4 fw-bold">Вход в аккаунт</h2>
 
+            {% if form.non_field_errors %}
             <div class="alert alert-danger d-flex align-items-center mb-4 fade show" role="alert">
-                <div><strong>Ошибка входа:</strong> Неверный логин или пароль.</div>
+                <div><strong>Ошибка входа:</strong> {{ form.non_field_errors }}</div>
             </div>
+            {% endif %}
             
-            <form action="#" method="POST" novalidate>
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                
                 <div class="mb-3">
-                    <label for="loginInput" class="form-label fw-semibold fs-5">Логин или Email</label>
-                    <input type="text" class="form-control form-control-lg" id="loginInput" name="login" 
-                            placeholder="Введите ваш логин или email" 
-                            maxlength="150" required autocomplete="username">
-                    <div class="form-text">Укажите данные для входа.</div>
-                    <div class="invalid-feedback">Некорректный логин или email.</div>
+                    <label for="{{ form.username_or_email.id_for_label }}" class="form-label fw-semibold fs-5">{{ form.username_or_email.label }}</label>
+                    {{ form.username_or_email }}
+                    {% if form.username_or_email.errors %}
+                    <div class="invalid-feedback d-block">{{ form.username_or_email.errors.0 }}</div>
+                    {% else %}
+                    <div class="form-text">Введите ваш логин или email.</div>
+                    {% endif %}
                 </div>
 
                 <div class="mb-4">
-                    <label for="passwordInput" class="form-label fw-semibold fs-5">Пароль</label>
-                    <input type="password" class="form-control form-control-lg" id="passwordInput" name="password" 
-                            placeholder="Введите пароль" 
-                            maxlength="128" required autocomplete="current-password">
+                    <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold fs-5">{{ form.password.label }}</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <div class="invalid-feedback d-block">{{ form.password.errors.0 }}</div>
+                    {% else %}
                     <div class="form-text">Пароль чувствителен к регистру.</div>
-                    <div class="invalid-feedback">Некорректный пароль.</div>
+                    {% endif %}
                 </div>
 
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
                     <div class="d-flex gap-2 order-sm-1 order-2 w-100 w-sm-auto">
-                        <a href="{% url 'index' %}" class="btn btn-outline-secondary px-4 flex-fill flex-sm-grow-0">Отмена</a>
                         <button type="submit" class="btn btn-primary px-5 fw-bold flex-fill flex-sm-grow-0">Войти</button>
                         <a href="{% url 'signup' %}" class="btn btn-outline-success px-4 flex-fill flex-sm-grow-0">Создать новый аккаунт</a>
                     </div>

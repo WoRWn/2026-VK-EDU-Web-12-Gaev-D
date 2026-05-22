@@ -16,22 +16,12 @@
                 {% csrf_token %}
                 
                 <div class="mb-3">
-                    <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold fs-5">{{ form.username.label }}</label>
-                    {{ form.username }}
-                    {% if form.username.errors %}
-                    <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
+                    <label for="{{ form.username_or_email.id_for_label }}" class="form-label fw-semibold fs-5">{{ form.username_or_email.label }}</label>
+                    {{ form.username_or_email }}
+                    {% if form.username_or_email.errors %}
+                    <div class="invalid-feedback d-block">{{ form.username_or_email.errors.0 }}</div>
                     {% else %}
-                    <div class="form-text">Укажите данные для входа.</div>
-                    {% endif %}
-                </div>
-
-                <div class="mb-3">
-                    <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold fs-5">{{ form.email.label }}</label>
-                    {{ form.email }}
-                    {% if form.email.errors %}
-                    <div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>
-                    {% else %}
-                    <div class="form-text">Укажите email, привязанный к аккаунту.</div>
+                    <div class="form-text">Введите ваш логин или email.</div>
                     {% endif %}
                 </div>
 
@@ -47,7 +37,6 @@
 
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
                     <div class="d-flex gap-2 order-sm-1 order-2 w-100 w-sm-auto">
-                        <a href="{% url 'index' %}" class="btn btn-outline-secondary px-4 flex-fill flex-sm-grow-0">Отмена</a>
                         <button type="submit" class="btn btn-primary px-5 fw-bold flex-fill flex-sm-grow-0">Войти</button>
                         <a href="{% url 'signup' %}" class="btn btn-outline-success px-4 flex-fill flex-sm-grow-0">Создать новый аккаунт</a>
                     </div>

@@ -9,6 +9,7 @@ from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.urls import reverse_lazy
 from django.shortcuts import redirect
+from django.contrib.auth.mixins import UserPassesTestMixin
 
 from django.db.models import Count
 from questions.models import Tag, User
@@ -20,10 +21,20 @@ def get_sidebar_context() -> dict[str, Any]:
     best_members = User.objects.annotate(q_count=Count("questions")).select_related("profile").order_by("-q_count")[:5]
     return { 'best_members': best_members, 'popular_tags': popular_tags }
 
-class LoginPageView(FormView):
+class AnonymousRequiredMixin(UserPassesTestMixin):
+    redirect_url = 'index'
+
+    def test_func(self):
+        return not self.request.user.is_authenticated
+
+    def handle_no_permission(self):
+        return redirect(self.redirect_url)
+
+class LoginPageView(AnonymousRequiredMixin, FormView):
     template_name = 'core/login.html'
     form_class = LoginForm
     success_url = reverse_lazy("index")
+    redirect_url = 'index'
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -38,10 +49,11 @@ class LoginPageView(FormView):
             return redirect(next_url)
         return super().form_valid(form)
         
-class SignUpPageView(FormView):
+class SignUpPageView(AnonymousRequiredMixin, FormView):
     template_name = 'core/signup.html'
     form_class = SignUpForm
     success_url = reverse_lazy("index")
+    redirect_url = 'index'
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -54,7 +66,6 @@ class SignUpPageView(FormView):
         return super().form_valid(form)
     
 
-@method_decorator(login_required, name="dispatch")
 class ProfilePageView(FormView):
     template_name = 'core/profile.html'
     form_class = ProfileForm
@@ -74,11 +85,6 @@ class ProfilePageView(FormView):
         form.save()
         return super().form_valid(form)
     
-@method_decorator(login_required, name="dispatch")
 class LogoutPageView(LogoutView):    
-    def get_success_url(self):
-        referer = self.request.META.get('HTTP_REFERER')
-        if referer:
-            return referer
-        return reverse_lazy('index')
+    next_page = reverse_lazy('index')
     

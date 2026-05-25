@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Count, Sum
+from django.utils import timezone
 
 import os
 import uuid
@@ -8,12 +9,22 @@ import uuid
 def avatar_upload_to(instance, filename):
     extension = filename.split(".")[-1].lower()
     unique_name = f"{uuid.uuid4().hex}.{extension}"
-    return os.path.join("avatars", unique_name)
+    now = timezone.now()
+    date_path = f"{now.day:02d}/{now.month:02d}/{now.year}"
+    return os.path.join("avatars", date_path, unique_name)
+
+class DefaultModel(models.Model):
+    created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(verbose_name="Дата обновления", auto_now=True)
+    is_active = models.BooleanField(verbose_name="Активно?", default=True, db_index=True)
+    
+    class Meta:
+        abstract = True
 
 class Profile(models.Model):
     user = models.OneToOneField(User, verbose_name="Пользователь", on_delete=models.CASCADE, related_name="profile")
     nickname = models.CharField(verbose_name="Никнейм", max_length=50, unique=True, blank=True)
-    bio = models.TextField(verbose_name="О себе", blank=True) 
+    bio = models.TextField(verbose_name="О себе", blank=True, max_length=500) 
     avatar = models.ImageField(verbose_name="Аватар", upload_to=avatar_upload_to, blank=True, null=True)
     created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True)
     class Meta:
@@ -35,32 +46,25 @@ class Tag(models.Model):
     
 class QuestionManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().select_related("author__profile").prefetch_related("tags")
+        return super().get_queryset().filter(is_active=True).select_related("author__profile").prefetch_related("tags")
         
     def new(self):
-        return self.get_queryset().annotate(
-            answers_count=Count("answers"), 
-            likes_count=Sum("question_likes")
-            ).order_by('-created_at')
+        return self.get_queryset().order_by('-created_at')
     
     def hot(self):
-        return self.get_queryset().annotate(
-            answers_count=Count("answers"), 
-            likes_count=Sum("question_likes")
-            ).order_by("-likes_count", "-created_at")
+        return self.get_queryset().order_by("-likes_cnt", "-created_at")
         
     def by_tag(self, tag_name):
-        return self.get_queryset().annotate(
-            answers_count=Count("answers"), 
-            likes_count=Sum("question_likes")            
-        ).filter(tags__name=tag_name).order_by("-created_at")
+        return self.get_queryset().filter(tags__name=tag_name).order_by("-created_at")
     
-class Question(models.Model):
+class Question(DefaultModel):
     title = models.CharField(verbose_name="Заголовок", max_length=255, blank=False, db_index=True)
-    text = models.TextField(verbose_name="Текст вопроса", blank=False)
+    text = models.TextField(verbose_name="Текст вопроса", blank=False, max_length=5000)
     author = models.ForeignKey(User, verbose_name="Автор", on_delete=models.SET_NULL, null=True, related_name="questions", db_index=True)
-    created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True, db_index=True)   
     tags = models.ManyToManyField(Tag, verbose_name="Теги", related_name="questions") 
+    
+    likes_cnt = models.IntegerField(verbose_name="Количество лайков", default=0, db_index=True)
+    answers_cnt = models.IntegerField(verbose_name="Количество ответов", default=0, db_index=True)
     
     objects = QuestionManager()
     class Meta:
@@ -74,15 +78,31 @@ class Question(models.Model):
 
     @property
     def net_rating(self):
-        res = self.question_likes.aggregate(total=Sum('value'))
-        return res['total'] or 0
+        return self.likes_cnt
+    
+    def set_user_vote(self, user, value: int):
+        like_obj = QuestionLike.objects.filter(user=user, question=self).first()
+        
+        if like_obj:
+            like_obj.value = value
+            like_obj.save(update_fields=['value'])
+        else:
+            if value != 0:
+                QuestionLike.objects.create(user=user, question=self, value=value)
 
-class Answer(models.Model):
+class AnswerManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True).select_related("author__profile")
+    
+class Answer(DefaultModel):
     question = models.ForeignKey(Question, verbose_name="Вопрос", on_delete=models.CASCADE, related_name="answers", db_index=True)
-    text = models.TextField(verbose_name="Текст ответа", blank=False)
+    text = models.TextField(verbose_name="Текст ответа", blank=False, max_length=5000)
     author = models.ForeignKey(User, verbose_name="Автор", on_delete=models.SET_NULL, null=True, related_name="answers")
-    created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True, db_index=True)    
     is_approved = models.BooleanField(verbose_name="Одобренный ответ", default=False)
+    
+    likes_cnt = models.IntegerField(verbose_name="Количество лайков", default=0, db_index=True)
+    
+    objects = AnswerManager()
     class Meta:
         verbose_name = "Ответ"
         verbose_name_plural = "Ответы"
@@ -94,13 +114,27 @@ class Answer(models.Model):
 
     @property
     def net_rating(self):
-        res = self.answer_likes.aggregate(total=Sum('value'))
-        return res['total'] or 0
+        return self.likes_cnt
+    
+    def set_is_approved(self, value: bool):
+        if self.is_approved != value:
+            self.is_approved = value
+            self.save(update_fields=["is_approved"])
+            
+    def set_user_vote(self, user, value: int):
+        like_obj = AnswerLike.objects.filter(user=user, answer=self).first()
+        
+        if like_obj:
+            like_obj.value = value
+            like_obj.save(update_fields=['value'])
+        else:
+            if value != 0:
+                AnswerLike.objects.create(user=user, answer=self, value=value)
  
 class AnswerLike(models.Model):
     answer = models.ForeignKey(Answer, verbose_name="Ответ", on_delete=models.CASCADE, related_name="answer_likes", db_index=True)
     user = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.CASCADE, related_name="user_answer_likes")
-    value = models.SmallIntegerField(verbose_name="Оценка", choices=[(1, 'Лайк'), (-1, 'Дизлайк')])
+    value = models.SmallIntegerField(verbose_name="Оценка", choices=[(1, 'Лайк'), (-1, 'Дизлайк'), (0, 'Нет реакции')])
     created_at = models.DateTimeField(verbose_name="Дата реакции", auto_now_add=True, db_index=True)
     class Meta:
         unique_together = [
@@ -116,7 +150,7 @@ class AnswerLike(models.Model):
 class QuestionLike(models.Model):
     question = models.ForeignKey(Question, verbose_name="Вопрос", on_delete=models.CASCADE, related_name="question_likes", db_index=True)
     user = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.CASCADE, related_name="user_question_likes")
-    value = models.SmallIntegerField(verbose_name="Оценка", choices=[(1, 'Лайк'), (-1, 'Дизлайк')])
+    value = models.SmallIntegerField(verbose_name="Оценка", choices=[(1, 'Лайк'), (-1, 'Дизлайк'), (0, 'Нет реакции')])
     created_at = models.DateTimeField(verbose_name="Дата реакции", auto_now_add=True) 
     class Meta:
         unique_together = [

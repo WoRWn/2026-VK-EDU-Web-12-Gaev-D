@@ -80,6 +80,7 @@ class AnswerForm(forms.ModelForm):
                 'class': 'form-control',
                 'rows': '5',
                 'placeholder': 'Напишите подробный ответ...',
+                'maxlength': '5000',
                 'required': True
             }),
         }

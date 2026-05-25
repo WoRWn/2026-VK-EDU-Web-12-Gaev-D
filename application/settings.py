@@ -60,6 +60,8 @@ INSTALLED_APPS = [
     
     'core',
     'questions',
+    
+    'rest_framework',
 ]
 
 if DEBUG:
@@ -161,7 +163,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 if DEBUG:
     INTERNAL_IPS = [
         '127.0.0.1',
-        '::1',  # Для IPv6
+        '::1',
     ]
     
 LOGIN_URL = "/login/"

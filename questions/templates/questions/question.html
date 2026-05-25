@@ -42,11 +42,11 @@
     </div>
 
     <div class="d-flex align-items-center justify-content-between mb-3 px-1">
-        <h2 class="h5 mb-0 text-secondary">Ответов: <span class="fw-bold text-dark fs-4">{{ question.answers.count }}</span></h2>
+        <h2 class="h5 mb-0 text-secondary">Ответов: <span class="fw-bold text-dark fs-4">{{ question.answers_cnt }}</span></h2>
     </div>
 
     {% for answer in answers %}
-    <div id="answer-{{ answer.id }}" class="card shadow-sm mb-3 {% if answer.is_approved %}border-start border-4 border-success{% endif %}">
+    <div id="answer-{{ answer.id }}" class="card sh adow-sm mb-3 {% if answer.is_approved %}border-start border-4 border-success{% endif %}">
         <div class="card-body p-4">
             <div class="d-flex gap-3">
                 <div class="vote-column d-flex flex-column align-items-center" style="min-width: 60px;">
@@ -71,6 +71,7 @@
                         <button class="btn btn-sm btn-link p-0 correct-btn mt-2 fs-4 {% if answer.is_approved %}text-success{% else %}text-secondary{% endif %}"
                                 data-qid="{{ question.id }}"
                                 data-aid="{{ answer.id }}"
+                                data-approved="{% if answer.is_approved %}true{% else %}false{% endif %}"
                                 title="{% if user.is_authenticated %}Отметить как правильный{% else %}Войдите, чтобы управлять ответами{% endif %}"
                                 {% if not user.is_authenticated %}disabled{% endif %}>
                             ✓

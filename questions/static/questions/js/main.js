@@ -16,9 +16,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const csrftoken = getCookie('csrftoken');
 
     const API_URLS = {
-        question_like: '/question/like/',
-        answer_like: '/answer/like/',
-        mark_correct: '/answer/mark-correct/'
+        question_like: function(questionId) {
+            return '/question/' + questionId + '/like/';
+        },
+        answer_like: function(questionId, answerId) {
+            return '/question/' + questionId + '/answer/' + answerId + '/like/';
+        },
+        mark_correct: function(questionId, answerId) {
+            return '/question/' + questionId + '/answer/' + answerId + '/mark-correct/';
+        }
     };
 
     function applyVoteState(btn, vote) {
@@ -55,18 +61,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.href = '/login/?next=' + window.location.pathname;
                 return;
             }
+            
             const id = this.dataset.id;
             const type = this.dataset.type;
-            const action = this.dataset.action;
+            const currentVote = parseInt(this.dataset.userVote || '0', 10);
+            const clickedValue = this.dataset.action === 'like' ? 1 : -1;
+            
+            let targetVote = clickedValue;
+            if (currentVote === clickedValue) {
+                targetVote = 0;
+            }
+
             const ratingEl = document.getElementById(
                 (type === 'question' ? 'q-rating-' : 'a-rating-') + id
             );
-            const url = (type === 'question') ? API_URLS.question_like : API_URLS.answer_like;
+            
+            let url;
+            let paramKey;
+            
+            if (type === 'question') {
+                url = API_URLS.question_like(id);
+                paramKey = 'question_id';
+            } else {
+                const questionCard = btn.closest('.card');
+                const questionId = questionCard ? questionCard.querySelector('[data-qid]')?.dataset.qid : null;
+                if (!questionId) {
+                    console.error('Could not find question_id for answer vote');
+                    return;
+                }
+                url = API_URLS.answer_like(questionId, id);
+                paramKey = 'answer_id';
+            }
 
             fetch(url, {
                 method: 'POST',
                 headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ [type + '_id']: id, action: action })
+                body: new URLSearchParams({ [paramKey]: id, vote: targetVote })
             })
             .then(function(response) {
                 if (response.status === 403) throw new Error('Auth required');
@@ -76,6 +106,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(function(data) {
                 if (data.status === 'ok') {
                     ratingEl.textContent = data.rating;
+                    
+                    const parent = btn.closest('.vote-column');
+                    parent.querySelectorAll('.vote-btn').forEach(b => {
+                        b.dataset.userVote = data.user_vote;
+                    });
+
                     applyVoteState(btn, data.user_vote);
                 }
             })
@@ -92,10 +128,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.href = '/login/?next=' + window.location.pathname;
                 return;
             }
-            fetch(API_URLS.mark_correct, {
+            
+            const isCurrentlyApproved = this.dataset.approved == "true";
+            const shouldBeApproved = !isCurrentlyApproved;
+            const answerCard = this.closest(".card");
+            const questionId = this.dataset.qid;
+            const answerId = this.dataset.aid;
+
+            fetch(API_URLS.mark_correct(questionId, answerId), {
                 method: 'POST',
                 headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ question_id: this.dataset.qid, answer_id: this.dataset.aid })
+                body: new URLSearchParams({ question_id: questionId, answer_id: answerId, is_approved: shouldBeApproved.toString() })
             })
             .then(function(response) {
                 if (response.status === 403) throw new Error('Auth required');
@@ -104,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(function(data) {
                 if (data.status === 'ok') {
-                    const answerCard = btn.closest('.card');
+                    btn.dataset.approved = data.is_approved.toString();
                     if (data.is_approved) {
                         answerCard.classList.add('border-start', 'border-4', 'border-success');
                         btn.classList.remove('text-secondary');

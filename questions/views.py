@@ -7,7 +7,11 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.db.models import Sum
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
 from questions.forms import QuestionForm, AnswerForm
 from core.views import get_sidebar_context
@@ -21,32 +25,27 @@ def paginate(queryset, request, per_page=15):
     except (PageNotAnInteger, EmptyPage):
         page = paginator.get_page(1)
     return page
-
-def set_questions_votes(request, page):
-    if not request.user.is_authenticated:
-        for q in page.object_list:
-            q.user_vote = 0
-        return
-    obj_ids = [q.id for q in page.object_list]
-    votes = dict(
-        QuestionLike.objects.filter(user=request.user, question_id__in=obj_ids)
-        .values_list('question_id', 'value')
-    )
-    for q in page.object_list:
-        q.user_vote = votes.get(q.id, 0)
         
-def set_answers_votes(request, page):
-    if not request.user.is_authenticated:
-        for a in page.object_list:
-            a.user_vote = 0
-        return
-    ans_ids = [a.id for a in page.object_list]
-    ans_votes = dict(
-        AnswerLike.objects.filter(user=request.user, answer_id__in=ans_ids)
-        .values_list('answer_id', 'value')
+def get_question_votes_context(user_id, question_ids):
+    if not user_id or not question_ids:
+        return {}
+    
+    question_likes_qs = QuestionLike.objects.filter(
+        user_id=user_id, 
+        question_id__in=question_ids
     )
-    for a in page.object_list:
-        a.user_vote = ans_votes.get(a.id, 0)
+    return {like.question_id: like.value for like in question_likes_qs}
+
+
+def get_answer_votes_context(user_id, answer_ids):
+    if not user_id or not answer_ids:
+        return {}
+    
+    answer_likes_qs = AnswerLike.objects.filter(
+        user_id=user_id, 
+        answer_id__in=answer_ids
+    )
+    return {answer.answer_id: answer.value for answer in answer_likes_qs}
 
 class IndexPageView(TemplateView):
     template_name = 'questions/index.html'
@@ -54,7 +53,17 @@ class IndexPageView(TemplateView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)     
         page = paginate(Question.objects.new(), self.request)
-        set_questions_votes(request=self.request, page=page)
+        
+        if self.request.user.is_authenticated:
+            question_ids = [q.id for q in page.object_list]
+            votes_map = get_question_votes_context(self.request.user.pk, question_ids)
+            
+            for question in page.object_list:
+                question.user_vote = votes_map.get(question.id, 0)
+        else:
+            for question in page.object_list:
+                question.user_vote = 0
+                
         context['questions'] = page
         context['page'] = page
         context.update(get_sidebar_context())
@@ -68,7 +77,17 @@ class TagPageView(TemplateView):
         tag_name = self.kwargs['tag_name']
         tag = get_object_or_404(Tag, name=tag_name)
         page = paginate(Question.objects.by_tag(tag_name), self.request)
-        set_questions_votes(request=self.request, page=page)
+        
+        if self.request.user.is_authenticated:
+            question_ids = [q.id for q in page.object_list]
+            votes_map = get_question_votes_context(self.request.user.pk, question_ids)
+            
+            for question in page.object_list:
+                question.user_vote = votes_map.get(question.id, 0)
+        else:
+            for question in page.object_list:
+                question.user_vote = 0
+        
         context["questions"] = page
         context["page"] = page
         context["tag"] = tag
@@ -81,7 +100,17 @@ class HotPageView(TemplateView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         page = paginate(Question.objects.hot(), self.request)
-        set_questions_votes(request=self.request, page=page)
+        
+        if self.request.user.is_authenticated:
+            question_ids = [q.id for q in page.object_list]
+            votes_map = get_question_votes_context(self.request.user.pk, question_ids)
+            
+            for question in page.object_list:
+                question.user_vote = votes_map.get(question.id, 0)
+        else:
+            for question in page.object_list:
+                question.user_vote = 0
+        
         context['questions'] = page
         context['page'] = page 
         context.update(get_sidebar_context())
@@ -94,22 +123,31 @@ class QuestionPageView(TemplateView):
         context = super().get_context_data(**kwargs)
         question_id = kwargs["question_id"]
         question = get_object_or_404(Question, pk=question_id)
-        answers_qs = question.answers.select_related("author", "author__profile").order_by("-created_at")
+        answers_qs = Answer.objects.filter(question=question).select_related("author", "author__profile").order_by("-created_at")
         
         page = paginate(answers_qs, self.request, per_page=10)
         
         if self.request.user.is_authenticated:
-            q_vote = QuestionLike.objects.filter(user=self.request.user, question=question).values_list('value', flat=True).first()
-            question.user_vote = q_vote or 0
+            votes_map = get_question_votes_context(self.request.user.pk, [question.id])
+            question.user_vote = votes_map.get(question.id, 0)
         else:
             question.user_vote = 0
             
-        set_answers_votes(request=self.request, page=page)
-        
+        if self.request.user.is_authenticated:
+            answer_ids = [a.id for a in page.object_list]
+            votes_map = get_answer_votes_context(self.request.user.pk, answer_ids)
+            
+            for answer in page.object_list:
+                answer.user_vote = votes_map.get(answer.id, 0)
+        else:
+            for answer in page.object_list:
+                answer.user_vote = 0
+                    
         context["question"] = question
         context["answers"] = page
         context["page"] = page
         context.update(get_sidebar_context())
+        context["answer_form"] = AnswerForm()
         return context
     
     def post(self, request, *args, **kwargs):
@@ -139,62 +177,61 @@ class AskPageView(FormView):
     def form_valid(self, form):
         question = form.save(author=self.request.user)
         return redirect("question", question_id = question.id)
+    
+class LikeQuestionView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, question_id):
+        target_vote = int(request.POST.get("vote", 0))
+        if target_vote not in (-1, 0, 1):
+            return Response({'error': 'invalid_vote'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        question = get_object_or_404(Question, pk=question_id)
+        question.set_user_vote(request.user, target_vote)
+        
+        question.refresh_from_db()
+        
+        return Response({
+            'rating': question.net_rating, 
+            'user_vote': target_vote, 
+            'status': 'ok'
+        })
+        
+class LikeAnswerView(APIView):
+    permission_classes = [IsAuthenticated]
 
-@login_required
-@require_POST
-def like_question(request):
-    q_id = request.POST.get('question_id')
-    action = request.POST.get('action')
-    if action not in ('like', 'dislike'):
-        return JsonResponse({'error': 'invalid_action'}, status=400)
-    question = get_object_or_404(Question, pk=q_id)
-    reaction_value = 1 if action == 'like' else -1
-    like_obj = QuestionLike.objects.filter(user=request.user, question=question).first()
-    if like_obj:
-        if like_obj.value == reaction_value:
-            like_obj.delete()
-        else:
-            like_obj.value = reaction_value
-            like_obj.save()
-    else:
-        QuestionLike.objects.create(user=request.user, question=question, value=reaction_value)
-    rating = question.question_likes.aggregate(total=Sum('value'))['total'] or 0
-    current_like = QuestionLike.objects.filter(user=request.user, question=question).first()
-    user_vote = current_like.value if current_like else 0
-    return JsonResponse({'rating': rating, 'user_vote': user_vote, 'status': 'ok'})
+    def post(self, request, question_id, answer_id):
+        target_vote = int(request.data.get("vote", 0))
+        
+        if target_vote not in (-1, 0, 1):
+            return Response({'error': 'invalid_vote'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        answer = get_object_or_404(Answer, pk=answer_id, question_id=question_id)
+        answer.set_user_vote(request.user, target_vote)
+        
+        answer.refresh_from_db()
+        
+        return Response({
+            'rating': answer.net_rating, 
+            'user_vote': target_vote, 
+            'status': 'ok'
+        })
+        
+class MarkCorrectAnswerView(APIView):
+    permission_classes = [IsAuthenticated]
 
-@login_required
-@require_POST
-def like_answer(request):
-    a_id = request.POST.get('answer_id')
-    action = request.POST.get('action')
-    if action not in ('like', 'dislike'):
-        return JsonResponse({'error': 'invalid_action'}, status=400)
-    answer = get_object_or_404(Answer, pk=a_id)
-    reaction_value = 1 if action == 'like' else -1
-    like_obj = AnswerLike.objects.filter(user=request.user, answer=answer).first()
-    if like_obj:
-        if like_obj.value == reaction_value:
-            like_obj.delete()
-        else:
-            like_obj.value = reaction_value
-            like_obj.save()
-    else:
-        AnswerLike.objects.create(user=request.user, answer=answer, value=reaction_value)
-    rating = answer.answer_likes.aggregate(total=Sum('value'))['total'] or 0
-    current_like = AnswerLike.objects.filter(user=request.user, answer=answer).first()
-    user_vote = current_like.value if current_like else 0
-    return JsonResponse({'rating': rating, 'user_vote': user_vote, 'status': 'ok'})
+    def post(self, request, question_id, answer_id):
+        is_approved = request.data.get("is_approved", "false").lower() == "true"
+        
+        question = get_object_or_404(Question, pk=question_id)
+        answer = get_object_or_404(Answer, pk=answer_id, question_id=question_id)
+        
+        if question.author != request.user:
+            return Response({'error': 'permission_denied'}, status=status.HTTP_403_FORBIDDEN)
 
-@login_required
-@require_POST
-def mark_correct_answer(request):
-    q_id = request.POST.get('question_id')
-    a_id = request.POST.get('answer_id')
-    question = get_object_or_404(Question, pk=q_id)
-    answer = get_object_or_404(Answer, pk=a_id, question=question)
-    if question.author != request.user:
-        return JsonResponse({'error': 'permission_denied'}, status=403)
-    answer.is_approved = not answer.is_approved
-    answer.save()
-    return JsonResponse({'is_approved': answer.is_approved, 'status': 'ok'}) 
+        answer.set_is_approved(is_approved)
+        
+        return Response({
+            'is_approved': answer.is_approved, 
+            'status': 'ok'
+        })

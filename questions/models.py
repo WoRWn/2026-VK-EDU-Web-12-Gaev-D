@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models import Count, Sum
 from django.utils import timezone
+from django.contrib.postgres.search import SearchVectorField
+from django.contrib.postgres.indexes import GinIndex
+
 
 import os
 import uuid
@@ -66,10 +68,16 @@ class Question(DefaultModel):
     likes_cnt = models.IntegerField(verbose_name="Количество лайков", default=0, db_index=True)
     answers_cnt = models.IntegerField(verbose_name="Количество ответов", default=0, db_index=True)
     
+    search_vector = SearchVectorField(null=True, editable=False)
+    
     objects = QuestionManager()
     class Meta:
         verbose_name = "Вопрос"
         verbose_name_plural = "Вопросы"
+        
+        indexes = [
+            GinIndex(fields=['search_vector'], name='question_search_gin'),
+        ]
 
     def __str__(self):
         if self.author_id:

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новый ответ</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .header {
+            padding-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            font-size: 18px;
+            color: #333;
+            margin: 0;
+        }
+        .question {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        .question strong {
+            display: block;
+            color: #007bff;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        .answer {
+            margin: 15px 0;
+            font-size: 14px;
+            color: #444;
+        }
+        .answer strong {
+            color: #333;
+        }
+        .answer-text {
+            background: #fff;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 8px;
+            white-space: pre-wrap;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: #007bff;
+            color: #fff !important;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 15px 0;
+        }
+        .footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 Новый ответ на ваш вопрос</h1>
+        </div>
+        
+        <p style="margin: 0 0 10px 0; font-size: 14px; color: #555;">
+            <strong>{{ answer_author }}</strong> ответил на:
+        </p>
+        
+        <div class="question">
+            <strong>Вопрос:</strong>
+            {{ question_title }}
+        </div>
+        
+        <div class="answer">
+            <strong>Ответ:</strong>
+            <div class="answer-text">{{ answer_text }}</div>
+        </div>
+        
+        <a href="{{ question_url }}" class="btn">Открыть вопрос</a>
+        
+        <div class="footer">
+            <p style="margin: 0;">© {% now "Y" %} World of Games</p>
+            <p style="margin: 5px 0 0 0; font-size: 11px;">
+                Письмо отправлено автоматически
+            </p>
+        </div>
+    </div>
+</body>
+</html>

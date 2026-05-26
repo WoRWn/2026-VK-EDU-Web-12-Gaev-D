@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 import sys
 from pathlib import Path
+from celery.schedules import crontab
 
 import environ
 
@@ -57,6 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     
     'core',
     'questions',
@@ -150,6 +152,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
@@ -169,3 +172,57 @@ if DEBUG:
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+REDIS_HOST = env('REDIS_HOST', default='localhost')
+REDIS_PORT = env.int('REDIS_PORT', default=6379)
+REDIS_CACHE_DB = env.int('REDIS_CACHE_DB', default=0)
+REDIS_BROKER_DB = env.int('REDIS_BROKER_DB', default=1)
+REDIS_BEAT_DB = env.int('REDIS_BEAT_DB', default=2)
+
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default=f'redis://{REDIS_HOST}:{REDIS_PORT}/1')
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default=f'redis://{REDIS_HOST}:{REDIS_PORT}/1')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_ACKS_LATE = env.bool('CELERY_TASK_ACKS_LATE', default=True)
+CELERY_WORKER_PREFETCH_MULTIPLIER = env.int('CELERY_WORKER_PREFETCH_MULTIPLIER', default=1)
+
+CELERY_BEAT_SCHEDULER = 'redbeat.RedBeatScheduler'
+CELERY_REDBEAT_REDIS_URL = env('CELERY_REDBEAT_REDIS_URL', default=f'redis://{REDIS_HOST}:{REDIS_PORT}/2')
+
+CELERY_BEAT_SCHEDULE = {
+    'update-popular-tags-every-10-minutes': {
+        'task': 'questions.tasks.update_popular_tags',
+        'schedule': 600.0, 
+    },
+    'update-best-members-every-10-minutes': {
+        'task': 'questions.tasks.update_best_members',
+        'schedule': 600.0,
+    },
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_CACHE_DB}',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'TIMEOUT': 60 * 10,
+    }
+}
+
+CENTRIFUGO_URL = env('CENTRIFUGO_URL', default='http://localhost:8000')
+CENTRIFUGO_SECRET = "my_secret_key"
+CENTRIFUGO_NAMESPACE = env('CENTRIFUGO_NAMESPACE', default='question')
+
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = env('EMAIL_HOST', default='localhost')
+EMAIL_PORT = env.int('EMAIL_PORT', default=1025)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=False)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=False)
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@localhost')
+
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK": lambda request: DEBUG,
+}

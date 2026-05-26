@@ -6,10 +6,21 @@
             <span>World of Games</span>
         </a>
 
-        <form class="d-flex w-100 w-lg-auto" action="#" role="search">
-            <input class="form-control me-2" type="search" name="q" placeholder="Как выполнить квест..." aria-label="Search"/>
-            <button class="btn btn-outline-info" type="submit">Поиск</button>
-        </form>
+        <div class="position-relative" style="width: 100%; max-width: 400px;">
+            <form class="d-flex" role="search" action="{% url 'index' %}" method="GET" id="search-form">
+                <input 
+                    class="form-control me-2" 
+                    type="search" 
+                    id="search-input" 
+                    name="q" 
+                    placeholder="Как выполнить квест..." 
+                    aria-label="Search"
+                    autocomplete="off"
+                />
+                <button class="btn btn-outline-info" type="submit">Поиск</button>
+            </form>
+            <div id="search-suggestions" class="list-group position-absolute w-100 mt-1 shadow bg-white" style="z-index: 1050; display: none; max-height: 300px; overflow-y: auto;"></div>
+        </div>
 
         {% if user.is_authenticated %}
             <a href="{% url 'ask' %}" class="d-flex w-100 w-lg-auto justify-content-center justify-content-lg-start" style="text-decoration: none;">

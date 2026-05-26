@@ -1,0 +1,13 @@
+{
+  "allowed_origins": ["http://localhost:8000"],
+  "api_insecure": true,
+  "client_insecure": true,
+  "token_hmac_secret_key": "my_secret_key",
+  "allow_subscribe_for_anonymous": true,
+  "namespaces": [
+    {
+      "name": "question",
+      "publish": true
+    }
+  ]
+}

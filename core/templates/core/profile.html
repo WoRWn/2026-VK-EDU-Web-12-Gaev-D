@@ -7,12 +7,6 @@
         <div class="card-body p-4 p-md-5">
             <h2 class="h3 mb-4 fw-bold">Настройки: {{ user.profile.nickname|default:user.username }}</h2>
 
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger d-flex align-items-center mb-4 fade show" role="alert">
-                <div><strong>Ошибка сохранения:</strong> {{ form.non_field_errors }}</div>
-            </div>
-            {% endif %}
-
             <form method="POST" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
                 
@@ -72,6 +66,12 @@
                     <div class="form-text">Поддерживаются JPG и PNG. Максимальный размер файла: 2 МБ.</div>
                     {% endif %}
                 </div>
+
+                {% if form.non_field_errors %}
+                <div class="text-danger mb-3 small">
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
 
                 <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
                     <a href="{% url 'index' %}" class="btn btn-outline-secondary px-4">Отмена</a>

@@ -33,3 +33,5 @@ dist/
 build/
 *.egg-info/
 EOF
+
+media/*

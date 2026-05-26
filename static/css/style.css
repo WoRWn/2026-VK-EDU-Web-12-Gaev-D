@@ -41,3 +41,8 @@ footer {
     transition: color 0.2s;
 }
 .char-counter.limit { color: #dc3545; font-weight: 600; }
+
+[data-auth-required] {
+    opacity: 0.65;
+    cursor: not-allowed;
+}

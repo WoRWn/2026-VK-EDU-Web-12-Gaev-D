@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from questions.models import Profile
+from django.db import transaction
 
 User = get_user_model()
 
@@ -40,9 +41,9 @@ class LoginForm(forms.Form):
                 user = User.objects.filter(email=identifier).first()
             
             if user is None or not user.check_password(password):
-                raise forms.ValidationError("Неверный логин/email или пароль")
-            
-            cleaned_data["user"] = user
+                self.add_error(None, "Неверный логин или пароль")
+            else:
+                cleaned_data["user"] = user
         return cleaned_data
         
         
@@ -129,6 +130,12 @@ class SignUpForm(forms.Form):
             raise forms.ValidationError("Этот логин уже занят.")
         return username
     
+    def clean_nickname(self):
+        nickname = self.cleaned_data.get("nickname")
+        if nickname and Profile.objects.filter(nickname=nickname).exists():
+            raise forms.ValidationError("Этот никнейм уже занят.")
+        return nickname
+    
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if User.objects.filter(email=email).exists():
@@ -163,18 +170,19 @@ class SignUpForm(forms.Form):
         return cleaned_data
     
     def save(self):
-        user = User.objects.create_user(
-            username=self.cleaned_data["username"],
-            email=self.cleaned_data["email"],
-            password=self.cleaned_data["password1"]
-        )
-        Profile.objects.create(
-            user=user,
-            nickname=self.cleaned_data['nickname'],
-            bio=self.cleaned_data.get('bio', ''),
-            avatar=self.cleaned_data.get('avatar')
-        )
-        return user 
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=self.cleaned_data["username"],
+                email=self.cleaned_data["email"],
+                password=self.cleaned_data["password1"]
+            )
+            Profile.objects.create(
+                user=user,
+                nickname=self.cleaned_data['nickname'],
+                bio=self.cleaned_data.get('bio', ''),
+                avatar=self.cleaned_data.get('avatar')
+            )
+            return user 
     
 class ProfileForm(forms.Form):
     email = forms.EmailField(
@@ -232,7 +240,7 @@ class ProfileForm(forms.Form):
                 
     def clean_email(self):
         email = self.cleaned_data.get("email")
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email=email).exclude(pk=self.user.pk).exists():
             raise forms.ValidationError("Этот email уже используется.")
         return email
     

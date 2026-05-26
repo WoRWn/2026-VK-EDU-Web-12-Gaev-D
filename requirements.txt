@@ -12,3 +12,5 @@ django-redis>=5.4.0
 django-redbeat
 requests>=2.31.0
 pycent>=1.0.0
+
+gunicorn>=21.2.0

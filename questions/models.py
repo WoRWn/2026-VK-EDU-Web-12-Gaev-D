@@ -10,13 +10,13 @@ def avatar_upload_to(instance, filename):
     extension = filename.split(".")[-1].lower()
     unique_name = f"{uuid.uuid4().hex}.{extension}"
     now = timezone.now()
-    date_path = f"{now.day:02d}/{now.month:02d}/{now.year}"
+    date_path = timezone.now().strftime("%d/%m/%Y")
     return os.path.join("avatars", date_path, unique_name)
 
 class DefaultModel(models.Model):
     created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(verbose_name="Дата обновления", auto_now=True)
-    is_active = models.BooleanField(verbose_name="Активно?", default=True, db_index=True)
+    is_active = models.BooleanField(verbose_name="Активно?", default=True)
     
     class Meta:
         abstract = True
@@ -81,14 +81,10 @@ class Question(DefaultModel):
         return self.likes_cnt
     
     def set_user_vote(self, user, value: int):
-        like_obj = QuestionLike.objects.filter(user=user, question=self).first()
-        
-        if like_obj:
+        like_obj, _ = QuestionLike.objects.get_or_create(user=user, question=self)
+        if value != like_obj.value:
             like_obj.value = value
-            like_obj.save(update_fields=['value'])
-        else:
-            if value != 0:
-                QuestionLike.objects.create(user=user, question=self, value=value)
+            like_obj.save(update_fields=["value"])
 
 class AnswerManager(models.Manager):
     def get_queryset(self):
@@ -122,14 +118,10 @@ class Answer(DefaultModel):
             self.save(update_fields=["is_approved"])
             
     def set_user_vote(self, user, value: int):
-        like_obj = AnswerLike.objects.filter(user=user, answer=self).first()
-        
-        if like_obj:
+        like_obj, _ = AnswerLike.objects.get_or_create(user=user, answer=self)
+        if value != like_obj.value:
             like_obj.value = value
-            like_obj.save(update_fields=['value'])
-        else:
-            if value != 0:
-                AnswerLike.objects.create(user=user, answer=self, value=value)
+            like_obj.save(update_fields=["value"])
  
 class AnswerLike(models.Model):
     answer = models.ForeignKey(Answer, verbose_name="Ответ", on_delete=models.CASCADE, related_name="answer_likes", db_index=True)

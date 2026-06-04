@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex
-
+from django.db.models import Sum 
 
 import os
 import uuid
@@ -35,6 +35,9 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"Профиль пользователя #{self.user_id}"
+    
+    def get_display_name(self):
+        return self.nickname or self.user.username
 
 class Tag(models.Model):
     name = models.CharField(verbose_name="Название", max_length=50, blank=False, unique=True, db_index=True)
@@ -89,10 +92,15 @@ class Question(DefaultModel):
         return self.likes_cnt
     
     def set_user_vote(self, user, value: int):
-        like_obj, _ = QuestionLike.objects.get_or_create(user=user, question=self)
+        like_obj, _ = QuestionLike.objects.get_or_create(user=user, question=self, defaults={'value': value})
+        
         if value != like_obj.value:
             like_obj.value = value
             like_obj.save(update_fields=["value"])
+            
+            total = self.question_likes.aggregate(total=Sum('value'))['total'] or 0
+            self.likes_cnt = total
+            self.save(update_fields=['likes_cnt'])
 
 class AnswerManager(models.Manager):
     def get_queryset(self):
@@ -115,6 +123,10 @@ class Answer(DefaultModel):
         if self.author_id:
             return f"Ответ на вопрос #{self.question_id} от пользователя #{self.author_id}"
         return f"Ответ на вопрос #{self.question_id} от удаленного пользователя"
+    
+    def update_question_answers_count(self):
+        self.question.answers_cnt = self.question.answers.count()
+        self.question.save(update_fields=['answers_cnt'])
 
     @property
     def net_rating(self):
@@ -126,10 +138,15 @@ class Answer(DefaultModel):
             self.save(update_fields=["is_approved"])
             
     def set_user_vote(self, user, value: int):
-        like_obj, _ = AnswerLike.objects.get_or_create(user=user, answer=self)
+        like_obj, _ = AnswerLike.objects.get_or_create(user=user, answer=self, defaults={'value': value})
+        
         if value != like_obj.value:
             like_obj.value = value
             like_obj.save(update_fields=["value"])
+            
+            total = self.answer_likes.aggregate(total=Sum('value'))['total'] or 0
+            self.likes_cnt = total
+            self.save(update_fields=['likes_cnt'])
  
 class AnswerLike(models.Model):
     answer = models.ForeignKey(Answer, verbose_name="Ответ", on_delete=models.CASCADE, related_name="answer_likes", db_index=True)
@@ -144,7 +161,8 @@ class AnswerLike(models.Model):
         verbose_name_plural = "Реакции на ответ"
 
     def __str__(self):
-        icon = "👍" if self.value > 0 else "👎"
+        icon_map = {1: "👍", -1: "👎", 0: "😐"}
+        icon = icon_map.get(self.value, "")
         return f"{icon} на ответ #{self.answer_id} от пользователя #{self.user_id}"
     
 class QuestionLike(models.Model):
@@ -160,6 +178,7 @@ class QuestionLike(models.Model):
         verbose_name_plural = "Реакции на вопрос"
 
     def __str__(self):
-        icon = "👍" if self.value > 0 else "👎"
+        icon_map = {1: "👍", -1: "👎", 0: "😐"}
+        icon = icon_map.get(self.value, "")
         return f"{icon} на вопрос #{self.question_id} от пользователя #{self.user_id}"
     

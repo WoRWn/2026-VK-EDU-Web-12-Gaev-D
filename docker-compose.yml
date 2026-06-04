@@ -70,7 +70,7 @@ services:
   celery_beat:
     build: .
     container_name: ${COMPOSE_PROJECT_NAME:-app}_celery_beat
-    command: celery -A application beat -l info --scheduler redbeat.RedBeatScheduler
+    command: celery -A application beat -l info
     volumes:
       - .:/app
     env_file:
@@ -108,9 +108,30 @@ services:
     networks:
       - app_net
 
+  nginx:
+    image: nginx:alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-app}_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./server.conf:/etc/nginx/conf.d/server.conf:ro
+      - ./static:/app/static:ro
+      - ./uploads:/app/uploads:rw
+      - nginx_cache:/var/cache/nginx
+    command: >
+      /bin/sh -c "rm -f /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+    depends_on:
+      - web
+    networks:
+      - app_net
+    restart: unless-stopped
+
+
 volumes:
   pg_data:
   redis_data:
+  nginx_cache:
 
 networks:
   app_net:

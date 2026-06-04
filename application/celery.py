@@ -8,3 +8,5 @@ app = Celery('application')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.autodiscover_tasks()
+
+app.conf.beat_scheduler = 'celery.beat:PersistentScheduler'

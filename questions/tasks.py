@@ -36,7 +36,7 @@ def update_popular_tags():
 
 @shared_task
 def update_best_members():
-    threshold = timezone.now() - timedelta(days=365)
+    threshold = timezone.now() - timedelta(days=7)
     
     users_qs = User.objects.annotate(
         week_q_likes=Sum('questions__question_likes__value', filter=Q(questions__created_at__gte=threshold)),

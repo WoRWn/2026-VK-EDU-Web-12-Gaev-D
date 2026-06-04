@@ -5,7 +5,6 @@ from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex
 from django.db.models import Sum 
 
-
 import os
 import uuid
 

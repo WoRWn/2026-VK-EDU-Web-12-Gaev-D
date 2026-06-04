@@ -27,13 +27,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const API_URLS = {
         question_like: function(questionId) {
-            return '/question/' + questionId + '/like/';
+            return `/question/${questionId}/like/`;
         },
         answer_like: function(questionId, answerId) {
-            return '/question/' + questionId + '/answer/' + answerId + '/like/';
+            return `/question/${questionId}/answer/${answerId}/like/`;
         },
         mark_correct: function(questionId, answerId) {
-            return '/question/' + questionId + '/answer/' + answerId + '/mark-correct/';
+            return `/question/${questionId}/answer/${answerId}/mark-correct/`;
         }
     };
 

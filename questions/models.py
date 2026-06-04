@@ -13,13 +13,13 @@ def avatar_upload_to(instance, filename):
     extension = filename.split(".")[-1].lower()
     unique_name = f"{uuid.uuid4().hex}.{extension}"
     now = timezone.now()
-    date_path = f"{now.day:02d}/{now.month:02d}/{now.year}"
+    date_path = timezone.now().strftime("%d/%m/%Y")
     return os.path.join("avatars", date_path, unique_name)
 
 class DefaultModel(models.Model):
     created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(verbose_name="Дата обновления", auto_now=True)
-    is_active = models.BooleanField(verbose_name="Активно?", default=True, db_index=True)
+    is_active = models.BooleanField(verbose_name="Активно?", default=True)
     
     class Meta:
         abstract = True

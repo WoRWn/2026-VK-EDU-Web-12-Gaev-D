@@ -70,7 +70,7 @@ services:
   celery_beat:
     build: .
     container_name: ${COMPOSE_PROJECT_NAME:-app}_celery_beat
-    command: celery -A application beat -l info --scheduler redbeat.RedBeatScheduler
+    command: celery -A application beat -l info
     volumes:
       - .:/app
     env_file:
@@ -115,6 +115,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./server.conf:/etc/nginx/conf.d/server.conf:ro
       - ./static:/app/static:ro
       - ./uploads:/app/uploads:rw
       - nginx_cache:/var/cache/nginx

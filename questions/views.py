@@ -5,6 +5,7 @@ from django.core.paginator import EmptyPage, Paginator, PageNotAnInteger
 from django.views.generic import TemplateView, FormView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.urls import reverse
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -20,6 +21,7 @@ from questions.models import Question, Tag, QuestionLike, AnswerLike, Answer
 from questions.utils import generate_centrifugo_token
 from application.settings import CENTRIFUGO_SECRET
 from questions.tasks import notify_new_answer, send_new_answer_notification
+from questions.serializers import VoteSerializer
 
 def paginate(queryset, request, per_page=15):
     page_num = request.GET.get('page', 1)
@@ -51,7 +53,7 @@ def search_suggestions(request):
         {
             'id': q.id,
             'title': q.headline or q.title,
-            'url': f'/question/{q.id}/'
+            'url': reverse('question', kwargs={'question_id': q.id})
         }
         for q in results
     ]
@@ -193,6 +195,8 @@ class QuestionPageView(TemplateView):
         if form.is_valid():
             answer = form.save(question=question, author=request.user)
             
+            answer.update_question_answers_count()
+            
             notify_new_answer.delay(answer.id)
             
             if question.author != request.user:
@@ -226,9 +230,10 @@ class LikeQuestionView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request, question_id):
-        target_vote = int(request.POST.get("vote", 0))
-        if target_vote not in (-1, 0, 1):
-            return Response({'error': 'invalid_vote'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = VoteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        target_vote = serializer.validated_data['vote']
         
         question = get_object_or_404(Question, pk=question_id)
         question.set_user_vote(request.user, target_vote)
@@ -245,10 +250,10 @@ class LikeAnswerView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, question_id, answer_id):
-        target_vote = int(request.data.get("vote", 0))
+        serializer = VoteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         
-        if target_vote not in (-1, 0, 1):
-            return Response({'error': 'invalid_vote'}, status=status.HTTP_400_BAD_REQUEST)
+        target_vote = serializer.validated_data['vote']
         
         answer = get_object_or_404(Answer, pk=answer_id, question_id=question_id)
         answer.set_user_vote(request.user, target_vote)

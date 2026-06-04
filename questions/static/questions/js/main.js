@@ -15,6 +15,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     const csrftoken = getCookie('csrftoken');
 
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     const API_URLS = {
         question_like: function(questionId) {
             return '/question/' + questionId + '/like/';
@@ -234,6 +244,9 @@ if (typeof Centrifuge !== 'undefined' && window.questionId && window.centrifugoT
             </button>
         ` : '';
 
+        const safeText = escapeHtml(data.text).replace(/\n/g, '<br>');
+        const safeAuthor = escapeHtml(data.author_username);
+
         const html = `
             <div id="answer-${data.answer_id}" class="card shadow-sm mb-3">
                 <div class="card-body p-4">
@@ -252,10 +265,10 @@ if (typeof Centrifuge !== 'undefined' && window.questionId && window.centrifugoT
                             ${approveButton}
                         </div>
                         <div class="flex-grow-1 d-flex flex-column">
-                            <div class="text-secondary mb-3 lh-lg">${data.text.replace(/\n/g, '<br>')}</div>
+                            <div class="text-secondary mb-3 lh-lg">${safeText}</div>
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2 border-top mt-auto">
                                 <div class="d-flex align-items-center gap-2">
-                                    <a href="#" class="text-decoration-none text-secondary fw-bold small">Автор ответа: ${data.author_username}</a>
+                                    <a href="#" class="text-decoration-none text-secondary fw-bold small">Автор ответа: ${safeAuthor}</a>
                                 </div>
                                 <div class="text-muted small">отвечен только что</div>
                             </div>

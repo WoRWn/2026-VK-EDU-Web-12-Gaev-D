@@ -36,7 +36,7 @@ def update_popular_tags():
 
 @shared_task
 def update_best_members():
-    threshold = timezone.now() - timedelta(days=7)
+    threshold = timezone.now() - timedelta(days=365)
     
     users_qs = User.objects.annotate(
         week_q_likes=Sum('questions__question_likes__value', filter=Q(questions__created_at__gte=threshold)),
@@ -47,8 +47,7 @@ def update_best_members():
 
     data = [
         {
-            'username': user.username,
-            'nickname': getattr(user.profile, 'nickname', user.username),
+            'nickname': user.profile.get_display_name(),
             'score': user.total_popularity or 0
         }
         for user in users_qs
@@ -60,17 +59,13 @@ def update_best_members():
 @shared_task
 def notify_new_answer(answer_id):
     try:
-        answer = Answer.objects.select_related('author').get(id=answer_id)
+        answer = Answer.objects.select_related('author', 'question__author').get(id=answer_id)
     except Answer.DoesNotExist:
         return
 
     channel = f"question_{answer.question_id}"
     
-    nickname = answer.author.username
-    try:
-        nickname = answer.author.profile.nickname or nickname
-    except AttributeError:
-        pass
+    nickname = answer.author.profile.get_display_name()
     
     payload = {
         "answer_id": answer.id,

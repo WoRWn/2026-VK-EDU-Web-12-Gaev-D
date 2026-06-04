@@ -5,17 +5,21 @@ from django.core.paginator import EmptyPage, Paginator, PageNotAnInteger
 from django.views.generic import TemplateView, FormView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from django.http import JsonResponse
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchHeadline
+
 
 from questions.forms import QuestionForm, AnswerForm
 from core.views import get_sidebar_context
 from questions.models import Question, Tag, QuestionLike, AnswerLike, Answer
+from questions.utils import generate_centrifugo_token
+from application.settings import CENTRIFUGO_SECRET
+from questions.tasks import notify_new_answer, send_new_answer_notification
 
 def paginate(queryset, request, per_page=15):
     page_num = request.GET.get('page', 1)
@@ -25,6 +29,33 @@ def paginate(queryset, request, per_page=15):
     except (PageNotAnInteger, EmptyPage):
         page = paginator.get_page(1)
     return page
+
+def search_suggestions(request):
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return JsonResponse([], safe=False)
+
+    search_query = SearchQuery(query, config='russian', search_type='websearch')
+
+    results = (
+        Question.objects.annotate(
+            rank=SearchRank('search_vector', search_query),
+            headline=SearchHeadline('title', search_query, config='russian', start_sel='<b>', stop_sel='</b>')
+        )
+        .filter(search_vector=search_query)
+        .order_by('-rank', '-created_at')
+        [:5]
+    )
+
+    data = [
+        {
+            'id': q.id,
+            'title': q.headline or q.title,
+            'url': f'/question/{q.id}/'
+        }
+        for q in results
+    ]
+    return JsonResponse(data, safe=False)
         
 def get_question_votes_context(user_id, question_ids):
     if not user_id or not question_ids:
@@ -127,6 +158,8 @@ class QuestionPageView(TemplateView):
         
         page = paginate(answers_qs, self.request, per_page=10)
         
+        context['centrifugo_token'] = generate_centrifugo_token(self.request.user.pk, CENTRIFUGO_SECRET) if self.request.user.is_authenticated else ''
+
         if self.request.user.is_authenticated:
             votes_map = get_question_votes_context(self.request.user.pk, [question.id])
             question.user_vote = votes_map.get(question.id, 0)
@@ -145,6 +178,7 @@ class QuestionPageView(TemplateView):
                     
         context["question"] = question
         context["answers"] = page
+        context['current_page'] = page.number
         context["page"] = page
         context.update(get_sidebar_context())
         context["answer_form"] = AnswerForm()
@@ -158,6 +192,16 @@ class QuestionPageView(TemplateView):
         form = AnswerForm(request.POST)
         if form.is_valid():
             answer = form.save(question=question, author=request.user)
+            
+            notify_new_answer.delay(answer.id)
+            
+            if question.author != request.user:
+                send_new_answer_notification.delay(
+                    question_id=question.id,
+                    answer_id=answer.id,
+                    recipient_email=question.author.email
+                )
+            
             return redirect(f"/question/{question_id}/#answer-{answer.id}")
         context = self.get_context_data(**kwargs)
         context["answer_form"] = form

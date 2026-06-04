@@ -1,6 +1,8 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.db.models import Sum
+from django.db.models.signals import pre_save
+from django.contrib.postgres.search import SearchVector
 
 from questions.models import Question, Answer, QuestionLike, AnswerLike
 
@@ -23,3 +25,12 @@ def update_answer_likes_count(sender, instance, **kwargs):
     result = answer.answer_likes.aggregate(total=Sum('value'))
     answer.likes_cnt = result['total'] or 0
     answer.save(update_fields=['likes_cnt'])
+    
+@receiver(post_save, sender=Question)
+def update_search_vector(sender, instance, created, **kwargs):
+    Question.objects.filter(id=instance.id).update(
+        search_vector=(
+            SearchVector('title', weight='A', config='russian') +
+            SearchVector('text', weight='B', config='russian')
+        )
+    )

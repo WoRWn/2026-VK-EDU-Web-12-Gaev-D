@@ -32,8 +32,85 @@ services:
     networks:
       - app_net
 
+  redis:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-app}_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_net
+
+  celery_worker:
+    build: .
+    container_name: ${COMPOSE_PROJECT_NAME:-app}_celery_worker
+    command: celery -A application worker -l info
+    volumes:
+      - .:/app
+      - ./media:/app/media
+    env_file:
+      - .conf/.env.docker
+    environment:
+      - DJANGO_ENV=docker
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    networks:
+      - app_net
+
+  celery_beat:
+    build: .
+    container_name: ${COMPOSE_PROJECT_NAME:-app}_celery_beat
+    command: celery -A application beat -l info --scheduler redbeat.RedBeatScheduler
+    volumes:
+      - .:/app
+    env_file:
+      - .conf/.env.docker
+    environment:
+      - DJANGO_ENV=docker
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    networks:
+      - app_net
+
+  centrifugo:
+    image: centrifugo/centrifugo:v5.4.0
+    container_name: ${COMPOSE_PROJECT_NAME:-app}_centrifugo
+    command: centrifugo -c config.json
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./centrifugo/config.json:/centrifugo/config.json
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app_net
+
+  maildev:
+    image: maildev/maildev:2.1.0
+    container_name: ${COMPOSE_PROJECT_NAME:-app}_maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    networks:
+      - app_net
+
 volumes:
   pg_data:
+  redis_data:
 
 networks:
   app_net:
